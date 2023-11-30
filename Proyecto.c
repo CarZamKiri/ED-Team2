@@ -36,7 +36,7 @@ typedef struct libros{
 typedef struct lista_libros {
     Libros datos_libro;
     struct lista_libros* sig;
-} Lista_libros;
+}Lista_libros;
 
 //Creamos la estructura con los datos del prestamo.
 typedef struct prestamo {
@@ -47,17 +47,17 @@ typedef struct prestamo {
     char fecha_devolver[25];
     int multa; 
     int estado; //estado del préstamo,puede ser pendiente, devuelto, vencido, etc.       
-} Prestamo;
+}Prestamo;
 
-//Cremos la estructura con los datos de la reserva.
-typedef struct reserva{
-	int ID_reserva;
-	int ID_usuario;
+//Creamos la estructura con los datos de la reserva.
+typedef struct reserva{ 
+int ID_reserva;int ID_usuario;
     char ID_libro[5];
     char fecha_reserva[25]; 
     int estado;
 }Reserva;
 
+//Creamos la estructura con los datos de la devolución.
 typedef struct devolucion{
 	char ID_libro[5];
 	int ID_usuario;
@@ -65,6 +65,7 @@ typedef struct devolucion{
 	char condicion[50];
 }Devolucion;
 
+//Creamos la estructura con los datos de las multas.
 typedef struct multas{
 	int ID_usuario;
 	char ID_libro[5];
@@ -74,6 +75,7 @@ typedef struct multas{
 	char metododepago[20];
 }Multas;
 
+//este aún no está listo xd
 typedef struct recordatorio{
 	int ID_prestamo;
 	char ID_libro[5];
@@ -118,10 +120,9 @@ int menuprincipal(){
 	printf("Ingrese una opcion: ");
 	scanf("%d", &opcion);
 	return opcion;
-
 }
 
-
+//Función para manejar la gestión de la librería.
 int libreria() {
     int op = 0;
     do {
@@ -133,26 +134,27 @@ int libreria() {
                 system("pause");  
                 exit(0);
             case 1:
-                usuarios(); //Llamamos a la función de usuarios
+                usuarios(); //ñlamamos a la función de los usuarios
                 break;
             case 2:
-            	libros();
+            	libros(); //llamamos a la función de los libros.
                 break;
             case 3:
-                transaccion();
+                transaccion(); //llamamos a la función de la transacción.
                 break;
             case 4:
-                reserva();
+                reserva(); //llamamos a la función de la reserva.
                 break;
             case 5:
-                multas();
+                multas(); //llamamos a la función de las multas;
+		//recordatorios();
                 break;
             case 6:
                 // Funcionalidad de notificaciones
                 break;
             default:
-                printf("ERROR. Opcion desconocida. \n");
-                system("pause");
+                puts("ERROR. Opcion desconocida."); //opción desconocida.
+                system("pause"); //pausa para permitir al usuario leer el mensaje de error.;
                 break;
         }
     } while (op != 0);
@@ -178,6 +180,7 @@ int menusuarios(){
 	return op;
 }
 
+//Función para manejar la gestoón de los usuarios
 int usuarios() {
     int op = 0;
     do {
@@ -185,8 +188,8 @@ int usuarios() {
 
         switch (op) {
             case 0:
-                puts("Volviendo al menu principal.");
-                system("pause");  
+                puts("Volviendo al menu principal."); //regresando al menú principal.
+                system("pause"); //pausa para permitir al usuario leer el mensaje.    
                 break;
             case 1:
                 //Agregar nuevo usuario.
@@ -204,8 +207,8 @@ int usuarios() {
                 //Editar datos del usuario.
                 break;
             default:
-                puts("ERROR. Opcion desconocida.");
-                system("pause");
+                puts("ERROR. Opcion desconocida."); //opción desconocida.
+                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
                 break;
         }
     } while (op != 0);
@@ -213,6 +216,7 @@ int usuarios() {
     return 0;
 }
 
+//Creamos una función para el menú de los libros.
 int menulibros(){
 	int op = 0;
 	system("cls");
@@ -229,6 +233,7 @@ int menulibros(){
 	return op;
 }	
 
+//Función para manejar la gestión de los libros.
 int libros() {
     int op = 0;
     do {
@@ -236,8 +241,8 @@ int libros() {
 
         switch (op) {
             case 0:
-                puts("Volviendo al menu principal.");
-                system("pause");  
+                puts("Volviendo al menu principal."); //regresando al menú principal.
+                system("pause"); //pausa para permitir al usuario leer el mensaje.   
                 break;
             case 1:
                 //Agregar nuevo libro.
@@ -252,8 +257,8 @@ int libros() {
                 //Editar libro.
                 break;
             default:
-                puts("ERROR. Opcion desconocida.");
-                system("pause");
+                puts("ERROR. Opcion desconocida."); //opción desconocida.
+                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
                 break;
         }
     } while (op != 0);
@@ -261,6 +266,7 @@ int libros() {
     return 0;
 }
 
+//Creamos una función para el menú de la transacción.
 int menutransaccion(){
 	int op = 0;
 	system("cls");
@@ -275,6 +281,7 @@ int menutransaccion(){
 	return op;
 }
 
+//Función para manejar la gestión de la transacción.
 int transaccion(){
     int op = 0;
     do {
@@ -282,8 +289,8 @@ int transaccion(){
 
         switch (op) {
             case 0:
-                puts("Volviendo al menu principal.");
-                system("pause");  
+                puts("Volviendo al menu principal."); //regresando al menú principal.
+                system("pause"); //pausa para permitir al usuario leer el mensaje.   
                 break;
             case 1:
             	prestamo();
@@ -292,8 +299,8 @@ int transaccion(){
             	devolucion();
             	break;
             default:
-                puts("ERROR. Opcion desconocida.");
-                system("pause");
+                puts("ERROR. Opcion desconocida."); //opción desconocida.
+                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
                 break;
         }
     } while (op != 0);
@@ -301,6 +308,7 @@ int transaccion(){
     return 0;
 }
 
+//Función para mostrar el menú de gestión de préstamos.
 int menuprestamos(){
 	int opc = 0;
 	system("cls");
@@ -316,7 +324,7 @@ int menuprestamos(){
 	return opc;
 }
 
-
+//Función para manejar la gestión de préstamos.
 int prestamo(){
     int opc = 0;
     do {
@@ -324,8 +332,8 @@ int prestamo(){
 
         switch (opc) {
             case 0:
-                puts("Volviendo al menu principal.");
-                system("pause"); 
+                puts("Volviendo al menu principal."); //regresando al menú principal.
+                system("pause"); //pausa para permitir al usuario leer el mensaje.   
                 break;
             case 1:
             	//Nuevo prestamo.
@@ -337,8 +345,8 @@ int prestamo(){
             	//Devolver prestamo
             	break;
             default:
-                puts("ERROR. Opcion desconocida.");
-                system("pause");
+                puts("ERROR. Opcion desconocida."); //opción desconocida.
+                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
                 break;
         }
     } while (opc != 0);
@@ -346,7 +354,7 @@ int prestamo(){
     return 0;
 }
 
-
+//Función para mostrar el menú de gestión de devoluciones
 int menudevolucion(){
 	int opo = 0;
 	system("cls");
@@ -362,6 +370,7 @@ int menudevolucion(){
 	return opo;
 }
 
+//Función para manejar la gestión de devoluciones.
 int devolucion(){
     int opo = 0;
     do {
@@ -369,8 +378,8 @@ int devolucion(){
 
         switch (opo) {
             case 0:
-                puts("Volviendo al menu principal.");
-                system("pause"); 
+                puts("Volviendo al menu principal."); //regresando al menú principal.
+                system("pause"); //pausa para permitir al usuario leer el mensaje.   
                 break;
             case 1:
             	//Registrar devolucion
@@ -382,8 +391,8 @@ int devolucion(){
             	//Buscar devolución.
             	break;
             default:
-                puts("ERROR. Opcion desconocida.");
-                system("pause");
+                puts("ERROR. Opcion desconocida."); //opción desconocida.
+                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
                 break;
         }
     } while (opo != 0);
@@ -391,6 +400,7 @@ int devolucion(){
     return 0;
 }
 
+//Función para mostrar el menú de gestión de reservas.
 int menureserva(){
 	int op = 0;
 	system("cls");
@@ -406,6 +416,7 @@ int menureserva(){
 	return op;
 }
 
+//Función para manejar la gestión de reservas.
 int reserva(){
     int op = 0;
     do {
@@ -413,8 +424,8 @@ int reserva(){
 
         switch (op) {
             case 0:
-                puts("Volviendo al menu principal.");
-                system("pause");                
+                puts("Volviendo al menu principal."); //regresando al menú principal.
+                system("pause"); //pausa para permitir al usuario leer el mensaje.                  
                 break;
             case 1:
             	//Nueva reserva.
@@ -426,8 +437,8 @@ int reserva(){
             	//Cancelar reserva.
             	break;
             default:
-                puts("ERROR. Opcion desconocida.");
-                system("pause");
+                puts("ERROR. Opcion desconocida."); //opción desconocida.
+                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
                 break;
         }
     } while (op != 0);
@@ -435,6 +446,7 @@ int reserva(){
     return 0;
 }
 
+//Función para mostrar el menú de gestión de multas
 int menumultas() {
     int op = 0;
     system("cls");
@@ -450,15 +462,15 @@ int menumultas() {
     return op;
 }
 
+//FFunción para manejar la gestión de multas.
 int multas(){
     int op = 0;
     do {
-        op = menumultas();
-
+        op = menumultas(); //Llamar a la función de menú y obtener la elección del usuario.
         switch (op) {
             case 0:
-                puts("Volviendo al menu principal.");
-                system("pause");                
+                puts("Volviendo al menu principal."); //regresando al menú principal.
+                system("pause"); //pausa para permitir al usuario leer el mensaje.          
                 break;
             case 1:
             	//Nueva multa.
@@ -470,20 +482,15 @@ int multas(){
             	//Pagar multa.
             	break;
             default:
-                puts("ERROR. Opcion desconocida.");
-                system("pause");
+                puts("ERROR. Opcion desconocida."); //opción desconocida.
+                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
                 break;
         }
     } while (op != 0);
-
     return 0;
 }
-int main(int argc, char** argv) {
-	libreria();
-	usuarios();
-	libros();
-	transaccion();
-	prestamo();
-	reserva();
 
+
+int main(int argc, char** argv) {
+	libreria(); //mandamos  llamar a la función librería para que se pueda ejecutar nuestro programa,
 }
