@@ -102,6 +102,101 @@ int menureserva();
 int reserva();
 int menumultas();
 int multas();
+/*Lista_usuarios* buscarUsuarioPorID(Lista_usuarios* lista, int ID) {
+    Lista_usuarios* actual = lista;
+    while (actual != NULL) {
+        if (actual->datos_usuario.ID_usuario == ID) {
+            return actual;
+        }
+        actual = actual->sig;
+    }
+    return NULL; // No se encontró el usuario
+}
+
+// Función para buscar un libro por ID
+Lista_libros* buscarLibroPorID(Lista_libros* lista, char* ID) {
+    Lista_libros* actual = lista;
+    while (actual != NULL) {
+        if (strcmp(actual->datos_libro.ID_libro, ID) == 0) {
+            return actual;
+        }
+        actual = actual->sig;
+    }
+    return NULL; // No se encontró el libro
+}
+
+// Función para modificar datos de un usuario
+void modificarUsuario(Lista_usuarios* usuario, char* nuevoNombre, char* nuevoApellido, int nuevaEdad, char* nuevoTelefono, char* nuevaDireccion, char* nuevoCP) {
+    if (usuario != NULL) {
+        strcpy(usuario->datos_usuario.nombre, nuevoNombre);
+        strcpy(usuario->datos_usuario.apellido, nuevoApellido);
+        usuario->datos_usuario.edad = nuevaEdad;
+        strcpy(usuario->datos_usuario.telefono, nuevoTelefono);
+        strcpy(usuario->datos_usuario.direccion, nuevaDireccion);
+        strcpy(usuario->datos_usuario.cp, nuevoCP);
+    }
+}
+
+// Función para modificar datos de un libro
+void modificarLibro(Lista_libros* libro, char* nuevoTitulo, char* nuevoAutor, char* nuevaCategoria, char* nuevaEditorial, char* nuevoIdioma, int nuevasPaginas, char* nuevaDescripcion, char* nuevaFechaLanzamiento) {
+    if (libro != NULL) {
+        strcpy(libro->datos_libro.titulo, nuevoTitulo);
+        strcpy(libro->datos_libro.autor, nuevoAutor);
+        strcpy(libro->datos_libro.categoria, nuevaCategoria);
+        strcpy(libro->datos_libro.editorial, nuevaEditorial);
+        strcpy(libro->datos_libro.idioma, nuevoIdioma);
+        libro->datos_libro.paginas = nuevasPaginas;
+        strcpy(libro->datos_libro.descripcion, nuevaDescripcion);
+        strcpy(libro->datos_libro.fechalanzamiento, nuevaFechaLanzamiento);
+    }
+}
+
+// Función para eliminar un usuario por ID
+Lista_usuarios* eliminarUsuarioPorID(Lista_usuarios* lista, int ID) {
+    Lista_usuarios* actual = lista;
+    Lista_usuarios* anterior = NULL;
+
+    while (actual != NULL) {
+        if (actual->datos_usuario.ID_usuario == ID) {
+            if (anterior == NULL) {
+                // El usuario a eliminar es el primero de la lista
+                lista = actual->sig;
+            } else {
+                anterior->sig = actual->sig;
+            }
+            free(actual);
+            break;
+        }
+        anterior = actual;
+        actual = actual->sig;
+    }
+
+    return lista;
+}
+
+// Función para eliminar un libro por ID
+Lista_libros* eliminarLibroPorID(Lista_libros* lista, char* ID) {
+    Lista_libros* actual = lista;
+    Lista_libros* anterior = NULL;
+
+    while (actual != NULL) {
+        if (strcmp(actual->datos_libro.ID_libro, ID) == 0) {
+            if (anterior == NULL) {
+                // El libro a eliminar es el primero de la lista
+                lista = actual->sig;
+            } else {
+                anterior->sig = actual->sig;
+            }
+            free(actual);
+            break;
+        }
+        anterior = actual;
+        actual = actual->sig;
+    }
+
+    return lista;
+}
+*/
 
 //Declaramos el menu principal.
 int menuprincipal(){
