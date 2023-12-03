@@ -229,7 +229,7 @@ int libreria() {
                 system("pause");  
                 exit(0);
             case 1:
-                usuarios(); //ñlamamos a la función de los usuarios
+                usuarios(); //llamamos a la función de los usuarios
                 break;
             case 2:
             	libros(); //llamamos a la función de los libros.
