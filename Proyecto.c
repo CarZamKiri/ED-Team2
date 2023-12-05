@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 //Creamos la estructura con los datos del usuario.
 typedef struct usuario{
@@ -38,52 +39,42 @@ typedef struct lista_libros {
     struct lista_libros* sig;
 }Lista_libros;
 
-//Creamos la estructura con los datos del prestamo.
 typedef struct prestamo {
     int ID_prestamo; 
     int ID_usuario;   
-    char ID_libro[5];      
-    char fecha_pedido[25]; 
-    char fecha_devolver[25];
+    char ID_libro[5]; 
+    time_t fecha_pedido;  // Modificado para usar time_t
+    time_t fecha_devolver;  // Modificado para usar time_t
     int multa; 
-    int estado; //estado del préstamo,puede ser pendiente, devuelto, vencido, etc.       
-}Prestamo;
+    int estado; // Estado del préstamo       
+} Prestamo;
 
-//Creamos la estructura con los datos de la reserva.
-typedef struct reserva{ 
-int ID_reserva;int ID_usuario;
+typedef struct devolucion {
     char ID_libro[5];
-    char fecha_reserva[25]; 
-    int estado;
-}Reserva;
+    int ID_usuario;
+    time_t fecha_devolvio;  // Modificado para usar time_t
+    char condicion[50];
+} Devolucion;
 
-//Creamos la estructura con los datos de la devolución.
-typedef struct devolucion{
-	char ID_libro[5];
-	int ID_usuario;
-	char fecha_devolvio[25];
-	char condicion[50];
-}Devolucion;
+typedef struct multas {
+    int ID_usuario;
+    char ID_libro[5];
+    int monto;
+    time_t fecha_devolver;  // Modificado para usar time_t
+    char razon[50];
+    char metododepago[20];
+} Multas;
 
-//Creamos la estructura con los datos de las multas.
-typedef struct multas{
-	int ID_usuario;
-	char ID_libro[5];
-	int monto;
-	char fecha_devolver[25];
-	char razon[50];
-	char metododepago[20];
-}Multas;
+typedef struct recordatorio {
+    int ID_prestamo;
+    char ID_libro[5];
+    time_t fecha_devolver;  // Modificado para usar time_t
+    char renovacion[10];
+    int ID_usuario;
+    char contacto[50];
+} Recordatorio;
 
-//este aún no está listo xd
-typedef struct recordatorio{
-	int ID_prestamo;
-	char ID_libro[5];
-	char fecha_devolver[25];
-	char renovacion[10];
-	int ID_usuario;
-	char contacto[50];
-}Recordatorio;
+
 
 //Declaramos las funciones globales.
 int menuprincipal();
