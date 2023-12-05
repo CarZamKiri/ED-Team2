@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <time.h>
 
 // Estructura con los datos del usuario.
 typedef struct usuario {
