@@ -1,89 +1,87 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-//Creamos la estructura con los datos del usuario.
-typedef struct usuario{
-	int ID_usuario;
-	char nombre[50];
-	char apellido[50];
-	int edad;
-	char telefono[20];
-	char direccion[100];
-	char cp [10];
-}Usuario;
+// Estructura con los datos del usuario.
+typedef struct usuario {
+    int ID_usuario;
+    char nombre[50];
+    char apellido[50];
+    int edad;
+    char telefono[20];
+    char direccion[100];
+    char cp[10];
+} Usuario;
 
-//Creamos la estructura donde se almacenan todos los datos de cada nodo.
-typedef struct lista_usuarios{
-	Usuario datos_usuario;
-	struct lista_usuarios *sig;
-}Lista_usuarios;
+// Estructura para la lista de usuarios.
+typedef struct lista_usuarios {
+    Usuario datos_usuario;
+    struct lista_usuarios *sig;
+} Lista_usuarios;
 
-//Creamos la estructura con los datos de los libros.
-typedef struct libros{
-	char ID_libro[5];
-	char titulo[50];
-	char autor[40];
-	char categoria[20];
-	char editorial[30];
-	char idioma[10];
-	int paginas;
-	char descripcion[200];
-	char fechalanzamiento[25];
-}Libros;
+// Estructura con los datos de los libros.
+typedef struct libros {
+    char ID_libro[5];
+    char titulo[50];
+    char autor[40];
+    char categoria[20];
+    char editorial[30];
+    char idioma[10];
+    int paginas;
+    char descripcion[200];
+    char fechalanzamiento[25];
+} Libros;
 
-//Creamos la estructra donde se almacenan todos los datos de cada nodo de los libros.
+// Estructura para la lista de libros.
 typedef struct lista_libros {
     Libros datos_libro;
     struct lista_libros* sig;
-}Lista_libros;
+} Lista_libros;
+//Estructura para libros prestados
+typedef struct lista_libros_prestados {
+    Libros datos_libro;
+    struct lista_libros_prestados* sig;
+} Lista_libros_prestados;
 
-//Creamos la estructura con los datos del prestamo.
+
+// Estructura con los datos del préstamo.
 typedef struct prestamo {
     int ID_prestamo; 
     int ID_usuario;   
-    char ID_libro[5];      
-    char fecha_pedido[25]; 
-    char fecha_devolver[25];
-    int multa; 
-    int estado; //estado del préstamo,puede ser pendiente, devuelto, vencido, etc.       
-}Prestamo;
+    char ID_libro[5]; 
+    time_t fecha_pedido;  // Uso de time_t
+    time_t fecha_devolver;  // Uso de time_t
+} Prestamo;
 
-//Creamos la estructura con los datos de la reserva.
-typedef struct reserva{ 
-int ID_reserva;int ID_usuario;
+// Estructura con los datos de la devolución.
+typedef struct devolucion {
     char ID_libro[5];
-    char fecha_reserva[25]; 
-    int estado;
-}Reserva;
+    int ID_usuario;
+    time_t fecha_devolvio;  // Uso de time_t
+    char condicion[50];
+} Devolucion;
 
-//Creamos la estructura con los datos de la devolución.
-typedef struct devolucion{
-	char ID_libro[5];
-	int ID_usuario;
-	char fecha_devolvio[25];
-	char condicion[50];
-}Devolucion;
+// Estructura con los datos de las multas.
+typedef struct multas {
+    int ID_usuario;
+    char ID_libro[5];
+    int monto;
+    time_t fecha_devolver;  // Uso de time_t
+    char razon[50];
+    char metododepago[20];
+} Multas;
 
-//Creamos la estructura con los datos de las multas.
-typedef struct multas{
-	int ID_usuario;
-	char ID_libro[5];
-	int monto;
-	char fecha_devolver[25];
-	char razon[50];
-	char metododepago[20];
-}Multas;
+// Estructura para los recordatorios.
+typedef struct recordatorio {
+    int ID_prestamo;
+    char ID_libro[5];
+    time_t fecha_devolver;  // Uso de time_t
+    char renovacion[10];
+    int ID_usuario;
+    char contacto[50];
+} Recordatorio;
 
-//este aún no está listo xd
-typedef struct recordatorio{
-	int ID_prestamo;
-	char ID_libro[5];
-	char fecha_devolver[25];
-	char renovacion[10];
-	int ID_usuario;
-	char contacto[50];
-}Recordatorio;
 
 //Declaramos las funciones globales.
 int menuprincipal();
@@ -98,105 +96,8 @@ int menuprestamos();
 int prestamo();
 int menudevolucion();
 int devolucion();
-int menureserva();
-int reserva();
 int menumultas();
 int multas();
-/*Lista_usuarios* buscarUsuarioPorID(Lista_usuarios* lista, int ID) {
-    Lista_usuarios* actual = lista;
-    while (actual != NULL) {
-        if (actual->datos_usuario.ID_usuario == ID) {
-            return actual;
-        }
-        actual = actual->sig;
-    }
-    return NULL; // No se encontró el usuario
-}
-
-// Función para buscar un libro por ID
-Lista_libros* buscarLibroPorID(Lista_libros* lista, char* ID) {
-    Lista_libros* actual = lista;
-    while (actual != NULL) {
-        if (strcmp(actual->datos_libro.ID_libro, ID) == 0) {
-            return actual;
-        }
-        actual = actual->sig;
-    }
-    return NULL; // No se encontró el libro
-}
-
-// Función para modificar datos de un usuario
-void modificarUsuario(Lista_usuarios* usuario, char* nuevoNombre, char* nuevoApellido, int nuevaEdad, char* nuevoTelefono, char* nuevaDireccion, char* nuevoCP) {
-    if (usuario != NULL) {
-        strcpy(usuario->datos_usuario.nombre, nuevoNombre);
-        strcpy(usuario->datos_usuario.apellido, nuevoApellido);
-        usuario->datos_usuario.edad = nuevaEdad;
-        strcpy(usuario->datos_usuario.telefono, nuevoTelefono);
-        strcpy(usuario->datos_usuario.direccion, nuevaDireccion);
-        strcpy(usuario->datos_usuario.cp, nuevoCP);
-    }
-}
-
-// Función para modificar datos de un libro
-void modificarLibro(Lista_libros* libro, char* nuevoTitulo, char* nuevoAutor, char* nuevaCategoria, char* nuevaEditorial, char* nuevoIdioma, int nuevasPaginas, char* nuevaDescripcion, char* nuevaFechaLanzamiento) {
-    if (libro != NULL) {
-        strcpy(libro->datos_libro.titulo, nuevoTitulo);
-        strcpy(libro->datos_libro.autor, nuevoAutor);
-        strcpy(libro->datos_libro.categoria, nuevaCategoria);
-        strcpy(libro->datos_libro.editorial, nuevaEditorial);
-        strcpy(libro->datos_libro.idioma, nuevoIdioma);
-        libro->datos_libro.paginas = nuevasPaginas;
-        strcpy(libro->datos_libro.descripcion, nuevaDescripcion);
-        strcpy(libro->datos_libro.fechalanzamiento, nuevaFechaLanzamiento);
-    }
-}
-
-// Función para eliminar un usuario por ID
-Lista_usuarios* eliminarUsuarioPorID(Lista_usuarios* lista, int ID) {
-    Lista_usuarios* actual = lista;
-    Lista_usuarios* anterior = NULL;
-
-    while (actual != NULL) {
-        if (actual->datos_usuario.ID_usuario == ID) {
-            if (anterior == NULL) {
-                // El usuario a eliminar es el primero de la lista
-                lista = actual->sig;
-            } else {
-                anterior->sig = actual->sig;
-            }
-            free(actual);
-            break;
-        }
-        anterior = actual;
-        actual = actual->sig;
-    }
-
-    return lista;
-}
-
-// Función para eliminar un libro por ID
-Lista_libros* eliminarLibroPorID(Lista_libros* lista, char* ID) {
-    Lista_libros* actual = lista;
-    Lista_libros* anterior = NULL;
-
-    while (actual != NULL) {
-        if (strcmp(actual->datos_libro.ID_libro, ID) == 0) {
-            if (anterior == NULL) {
-                // El libro a eliminar es el primero de la lista
-                lista = actual->sig;
-            } else {
-                anterior->sig = actual->sig;
-            }
-            free(actual);
-            break;
-        }
-        anterior = actual;
-        actual = actual->sig;
-    }
-
-    return lista;
-}
-*/
 
 //Declaramos el menu principal.
 int menuprincipal(){
@@ -208,9 +109,8 @@ int menuprincipal(){
 	puts("[1] Usuario.");
 	puts("[2] Catalogo de libros.");
 	puts("[3] Transaccion");
-	puts("[4] Reserva.");
-	puts("[5] Multas y recordatorios.");
-	puts("[6] Notificaciones.");
+	puts("[4] Multas y recordatorios.");
+	puts("[5] Notificaciones.");
 	puts("[0] SALIR.\n");
 	printf("Ingrese una opcion: ");
 	scanf("%d", &opcion);
@@ -238,13 +138,10 @@ int libreria() {
                 transaccion(); //llamamos a la función de la transacción.
                 break;
             case 4:
-                reserva(); //llamamos a la función de la reserva.
-                break;
-            case 5:
                 multas(); //llamamos a la función de las multas;
 		//recordatorios();
                 break;
-            case 6:
+            case 5:
                 // Funcionalidad de notificaciones
                 break;
             default:
@@ -412,7 +309,7 @@ int menuprestamos(){
 	puts("\t------------------------------------------");
 	puts("[1] Nuevo prestamo.");
 	puts("[2] Libros prestados.");
-	puts("[3] Devolver prestamo.");
+	puts("[3] Cancelar prestamo.");
 	puts("[0] Volver al menu de transaccion.\n");
 	printf("Ingrese una opcion: ");
 	scanf("%d", &opc);
@@ -495,51 +392,6 @@ int devolucion(){
     return 0;
 }
 
-//Función para mostrar el menú de gestión de reservas.
-int menureserva(){
-	int op = 0;
-	system("cls");
-	puts("\t------------------------------------------");
-	puts("\t               RESERVA:                   ");
-	puts("\t------------------------------------------");
-	puts("[1] Nueva reserva.");
-	puts("[2] Libros reservados.");
-	puts("[3] Cancelar reserva.");
-	puts("[0] Volver al menu principal.\n");
-	printf("Ingrese una opcion: ");
-	scanf("%d", &op);
-	return op;
-}
-
-//Función para manejar la gestión de reservas.
-int reserva(){
-    int op = 0;
-    do {
-        op = menureserva();
-
-        switch (op) {
-            case 0:
-                puts("Volviendo al menu principal."); //regresando al menú principal.
-                system("pause"); //pausa para permitir al usuario leer el mensaje.                  
-                break;
-            case 1:
-            	//Nueva reserva.
-                break;
-            case 2:
-            	//Libros reservados
-            	break;
-            case 3:
-            	//Cancelar reserva.
-            	break;
-            default:
-                puts("ERROR. Opcion desconocida."); //opción desconocida.
-                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
-                break;
-        }
-    } while (op != 0);
-
-    return 0;
-}
 
 //Función para mostrar el menú de gestión de multas
 int menumultas() {
