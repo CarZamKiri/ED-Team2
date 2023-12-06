@@ -92,7 +92,8 @@ void agregarUsuario(Lista_usuarios **listaUsuarios);
 void eliminarUsuario(Lista_usuarios **listaUsuarios);
 void buscarUsuario(Lista_usuarios *listaUsuarios);
 void visualizarUsuarios(Lista_usuarios *listaUsuarios);
-void editarUsuario(Lista_usuarios *listaUsuarios);
+void visualizarUsuario(Usuario usuario);
+void editarUsuario(Lista_usuarios **listaUsuarios);
 int menulibros();
 int libros();
 int menutransaccion();
@@ -169,7 +170,7 @@ int menusuarios(){
 	puts("[1] Nuevo usuario.");
 	puts("[2] Eliminar usuario.");
 	puts("[3] Buscar usuario.");
-	puts("[4] Visualizar datos del usuario.");
+	puts("[4] Visualizar datos de los usuarios.");
 	puts("[5] Editar datos del usuario.");
 	puts("[0] Volver al menu principal.\n");
 	printf("Ingrese una opcion: \n");
@@ -179,6 +180,7 @@ int menusuarios(){
 
 //Función para manejar la gestoón de los usuarios
 int usuarios(Lista_usuarios **listaUsuarios) {
+    system("cls");
     int op = 0;
     do {
         op = menusuarios();
@@ -201,7 +203,7 @@ int usuarios(Lista_usuarios **listaUsuarios) {
                 visualizarUsuarios(*listaUsuarios);
                 break;
             case 5:
-                editarUsuario(*listaUsuarios);
+                editarUsuario(listaUsuarios);
                 break;
             default:
                 puts("ERROR. Opcion desconocida.");
@@ -214,39 +216,46 @@ int usuarios(Lista_usuarios **listaUsuarios) {
 }
 
 void agregarUsuario(Lista_usuarios **listaUsuarios) {
+    system("cls");
     Lista_usuarios *nuevoUsuario = (Lista_usuarios *)malloc(sizeof(Lista_usuarios));
 
-    // Solicitar al usuario que ingrese los datos o proporcionarlos desde algún otro lugar.
     printf("Ingrese el ID del usuario: ");
     scanf("%d", &nuevoUsuario->datos_usuario.ID_usuario);
+    getchar(); // Limpia el buffer del new line que queda después de scanf
 
     printf("Ingrese el nombre del usuario: ");
-    scanf("%s", nuevoUsuario->datos_usuario.nombre);
+    fgets(nuevoUsuario->datos_usuario.nombre, 50, stdin);
+    nuevoUsuario->datos_usuario.nombre[strcspn(nuevoUsuario->datos_usuario.nombre, "\n")] = 0; // Elimina el new line al final
 
     printf("Ingrese el apellido del usuario: ");
-    scanf("%s", nuevoUsuario->datos_usuario.apellido);
+    fgets(nuevoUsuario->datos_usuario.apellido, 50, stdin);
+    nuevoUsuario->datos_usuario.apellido[strcspn(nuevoUsuario->datos_usuario.apellido, "\n")] = 0;
 
     printf("Ingrese la edad del usuario: ");
     scanf("%d", &nuevoUsuario->datos_usuario.edad);
+    getchar(); // Limpia el buffer del new line que queda después de scanf
 
     printf("Ingrese el teléfono del usuario: ");
-    scanf("%s", nuevoUsuario->datos_usuario.telefono);
+    fgets(nuevoUsuario->datos_usuario.telefono, 20, stdin);
+    nuevoUsuario->datos_usuario.telefono[strcspn(nuevoUsuario->datos_usuario.telefono, "\n")] = 0;
 
     printf("Ingrese la dirección del usuario: ");
-    scanf("%s", nuevoUsuario->datos_usuario.direccion);
+    fgets(nuevoUsuario->datos_usuario.direccion, 100, stdin);
+    nuevoUsuario->datos_usuario.direccion[strcspn(nuevoUsuario->datos_usuario.direccion, "\n")] = 0;
 
     printf("Ingrese el código postal del usuario: ");
-    scanf("%s", nuevoUsuario->datos_usuario.cp);
+    fgets(nuevoUsuario->datos_usuario.cp, 10, stdin);
+    nuevoUsuario->datos_usuario.cp[strcspn(nuevoUsuario->datos_usuario.cp, "\n")] = 0;
 
     nuevoUsuario->sig = *listaUsuarios;
     *listaUsuarios = nuevoUsuario;
 
     printf("Usuario agregado con éxito.\n");
-    system("pause");
 }
 
 // Función para eliminar un usuario por ID.
 void eliminarUsuario(Lista_usuarios **listaUsuarios) {
+    system("cls");
     int idUsuario;
     printf("Ingrese el ID del usuario a eliminar: ");
     scanf("%d", &idUsuario);
@@ -277,6 +286,7 @@ void eliminarUsuario(Lista_usuarios **listaUsuarios) {
 
 // Función para buscar un usuario por ID.
 void buscarUsuario(Lista_usuarios *listaUsuarios) {
+    system("cls");
     int idUsuario;
     printf("Ingrese el ID del usuario a buscar: ");
     scanf("%d", &idUsuario);
@@ -302,60 +312,156 @@ void buscarUsuario(Lista_usuarios *listaUsuarios) {
     system("pause");
 }
 
+// Función para mostrar los datos de un usuario especifico
+void visualizarUsuario(Usuario usuario) {
+    system("cls");
+    printf("ID: %d\n", usuario.ID_usuario);
+    printf("Nombre: %s\n", usuario.nombre);
+    printf("Apellido: %s\n", usuario.apellido);
+    printf("Edad: %d\n", usuario.edad);
+    printf("Teléfono: %s\n", usuario.telefono);
+    printf("Dirección: %s\n", usuario.direccion);
+    printf("Código Postal: %s\n", usuario.cp);
+}
+
 // Función para visualizar todos los usuarios.
 void visualizarUsuarios(Lista_usuarios *listaUsuarios) {
+    system("cls");
     while (listaUsuarios != NULL) {
-        printf("ID: %d\nNombre: %s %s\nEdad: %d\nTeléfono: %s\nDirección: %s\nCódigo Postal: %s\n\n",
-            listaUsuarios->datos_usuario.ID_usuario,
-            listaUsuarios->datos_usuario.nombre,
-            listaUsuarios->datos_usuario.apellido,
-            listaUsuarios->datos_usuario.edad,
-            listaUsuarios->datos_usuario.telefono,
-            listaUsuarios->datos_usuario.direccion,
-            listaUsuarios->datos_usuario.cp);
-        listaUsuarios = listaUsuarios->sig; 
+        visualizarUsuario(listaUsuarios->datos_usuario);
+        printf("\n");
+        listaUsuarios = listaUsuarios->sig;
     }
-    system("pause");  
+    system("pause");
 }
 
 // Función para editar los datos de un usuario por ID.
-void editarUsuario(Lista_usuarios *listaUsuarios) {
+void editarUsuario(Lista_usuarios **listaUsuarios) {
+    system("cls");
     int idUsuario;
     printf("Ingrese el ID del usuario a editar: ");
     scanf("%d", &idUsuario);
 
-    while (listaUsuarios != NULL) {
-        if (listaUsuarios->datos_usuario.ID_usuario == idUsuario) {
-            // Solicitar al usuario que ingrese los nuevos datos o modificarlos desde algún otro lugar.
-            printf("Ingrese el nuevo nombre: ");
-            scanf("%s", listaUsuarios->datos_usuario.nombre);
+    Lista_usuarios *actual = *listaUsuarios;
 
-            printf("Ingrese el nuevo apellido: ");
-            scanf("%s", listaUsuarios->datos_usuario.apellido);
+    while (actual != NULL) {
+        if (actual->datos_usuario.ID_usuario == idUsuario) {
 
-            printf("Ingrese la nueva edad: ");
-            scanf("%d", &listaUsuarios->datos_usuario.edad);
+            // Imprimimos los datos actuales del usuario
+            printf("Datos actuales del usuario:\n");
+            visualizarUsuario(actual->datos_usuario);
 
-            printf("Ingrese el nuevo teléfono: ");
-            scanf("%s", listaUsuarios->datos_usuario.telefono);
+            // Preguntamos al usuario si desea editar todos los datos o un dato específico
+            int opcionEdicion;
+            printf("Seleccione la opción de edición:\n");
+            printf("[1] Todos los datos\n");
+            printf("[2] Dato específico\n");
+            printf("Ingrese una opcion: ");
+            scanf("%d", &opcionEdicion);
 
-            printf("Ingrese la nueva dirección: ");
-            scanf("%s", listaUsuarios->datos_usuario.direccion);
+            // Limpiamos el búfer del teclado
+            while (getchar() != '\n');
 
-            printf("Ingrese el nuevo código postal: ");
-            scanf("%s", listaUsuarios->datos_usuario.cp);
+            if (opcionEdicion == 1) {
+                // Edición de todos los datos
+                printf("Ingrese el nuevo nombre: ");
+                fgets(actual->datos_usuario.nombre, sizeof(actual->datos_usuario.nombre), stdin);
+                actual->datos_usuario.nombre[strcspn(actual->datos_usuario.nombre, "\n")] = 0;  // Elimina el salto de línea al final
+
+                printf("Ingrese el nuevo apellido: ");
+                fgets(actual->datos_usuario.apellido, sizeof(actual->datos_usuario.apellido), stdin);
+                actual->datos_usuario.apellido[strcspn(actual->datos_usuario.apellido, "\n")] = 0;  // Elimina el salto de línea al final
+
+                printf("Ingrese la nueva edad: ");
+                scanf("%d", &actual->datos_usuario.edad);
+
+                printf("Ingrese el nuevo teléfono: ");
+                fgets(actual->datos_usuario.telefono, sizeof(actual->datos_usuario.telefono), stdin);
+                actual->datos_usuario.telefono[strcspn(actual->datos_usuario.telefono, "\n")] = 0;
+
+                printf("Ingrese la nueva dirección: ");
+                fgets(actual->datos_usuario.direccion, sizeof(actual->datos_usuario.direccion), stdin);
+                actual->datos_usuario.direccion[strcspn(actual->datos_usuario.direccion, "\n")] = 0;
+
+                printf("Ingrese el nuevo código postal: ");
+                fgets(actual->datos_usuario.cp, sizeof(actual->datos_usuario.cp), stdin);
+                actual->datos_usuario.cp[strcspn(actual->datos_usuario.cp, "\n")] = 0;
+                
+            } else if (opcionEdicion == 2) {
+                int opcionCampo;
+                printf("Seleccione el campo a editar:\n");
+                printf("[1] Nombre\n");
+                printf("[2] Apellido\n");
+                printf("[3] Edad\n");
+                printf("[4] Teléfono\n");
+                printf("[5] Dirección\n");
+                printf("[6] Código Postal\n");
+
+                printf("Ingrese una opcion: ");
+                scanf("%d", &opcionCampo);
+
+                // Limpiamos el búfer del teclado
+                while (getchar() != '\n');
+
+                // Variable temporal para almacenar la nueva información
+                char nuevaInfo[100];
+
+                // Realizamos la edición según la opción seleccionada
+                switch (opcionCampo) {
+                    case 1:
+                        printf("Ingrese el nuevo nombre: ");
+                        fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
+                        nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;  // Elimina el salto de línea al final
+                        strncpy(actual->datos_usuario.nombre, nuevaInfo, sizeof(actual->datos_usuario.nombre) - 1);
+                        break;
+                    case 2:
+                        printf("Ingrese el nuevo apellido: ");
+                        fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
+                        nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;  // Elimina el salto de línea al final
+                        strncpy(actual->datos_usuario.apellido, nuevaInfo, sizeof(actual->datos_usuario.apellido) - 1);
+                        break;
+                    case 3:
+                        printf("Ingrese la nueva edad: ");
+                        fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
+                        actual->datos_usuario.edad = atoi(nuevaInfo);
+                        break;
+                    case 4:
+                        printf("Ingrese el nuevo teléfono: ");
+                        fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
+                        nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;
+                        strncpy(actual->datos_usuario.telefono, nuevaInfo, sizeof(actual->datos_usuario.telefono) - 1);
+                        break;
+                    case 5:
+                        printf("Ingrese la nueva dirección: ");
+                        fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
+                        nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;
+                        strncpy(actual->datos_usuario.direccion, nuevaInfo, sizeof(actual->datos_usuario.direccion) - 1);
+                        break;
+                    case 6:
+                        printf("Ingrese el nuevo código postal: ");
+                        fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
+                        nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;
+                        strncpy(actual->datos_usuario.cp, nuevaInfo, sizeof(actual->datos_usuario.cp) - 1);
+                        break;
+                    default:
+                        printf("Opción no válida.\n");
+                        break;
+                }
+            } else {
+                printf("Opción no válida.\n");
+                return;
+            }
 
             printf("Usuario editado con éxito.\n");
-            system("pause");
             return;
         }
 
-        listaUsuarios = listaUsuarios->sig;
+        actual = actual->sig;
     }
 
     printf("Usuario no encontrado.\n");
-    system("pause");
 }
+
 
 
 //Creamos una función para el menú de los libros.
