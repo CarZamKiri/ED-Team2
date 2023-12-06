@@ -87,7 +87,12 @@ typedef struct recordatorio {
 int menuprincipal();
 int libreria();
 int menusuarios();
-int usuarios();
+int usuarios(Lista_usuarios **listaUsuarios);
+void agregarUsuario(Lista_usuarios **listaUsuarios);
+void eliminarUsuario(Lista_usuarios **listaUsuarios);
+void buscarUsuario(Lista_usuarios *listaUsuarios);
+void visualizarUsuarios(Lista_usuarios *listaUsuarios);
+void editarUsuario(Lista_usuarios *listaUsuarios);
 int menulibros();
 int libros();
 int menutransaccion();
@@ -118,7 +123,7 @@ int menuprincipal(){
 }
 
 //Función para manejar la gestión de la librería.
-int libreria() {
+int libreria(Lista_usuarios **listaUsuarios) {
     int op = 0;
     do {
         op = menuprincipal();
@@ -126,27 +131,27 @@ int libreria() {
         switch (op) {
             case 0:
                 puts("Saliendo...");
-                system("pause");  
-                exit(0);
+                system("pause");
+                break;
             case 1:
-                usuarios(); //llamamos a la función de los usuarios
+                // Llamamos a la función de gestión de usuarios y pasamos la lista de usuarios como parámetro.
+                usuarios(listaUsuarios);
                 break;
             case 2:
-            	libros(); //llamamos a la función de los libros.
+                libros();
                 break;
             case 3:
-                transaccion(); //llamamos a la función de la transacción.
+                transaccion();
                 break;
             case 4:
-                multas(); //llamamos a la función de las multas;
-		//recordatorios();
+                multas();
                 break;
             case 5:
                 // Funcionalidad de notificaciones
                 break;
             default:
-                puts("ERROR. Opcion desconocida."); //opción desconocida.
-                system("pause"); //pausa para permitir al usuario leer el mensaje de error.;
+                puts("ERROR. Opcion desconocida.");
+                system("pause");
                 break;
         }
     } while (op != 0);
@@ -173,40 +178,185 @@ int menusuarios(){
 }
 
 //Función para manejar la gestoón de los usuarios
-int usuarios() {
+int usuarios(Lista_usuarios **listaUsuarios) {
     int op = 0;
     do {
         op = menusuarios();
 
         switch (op) {
             case 0:
-                puts("Volviendo al menu principal."); //regresando al menú principal.
-                system("pause"); //pausa para permitir al usuario leer el mensaje.    
+                puts("Volviendo al menu principal.");
+                system("pause");
                 break;
             case 1:
-                //Agregar nuevo usuario.
+                agregarUsuario(listaUsuarios);
                 break;
             case 2:
-            	//Eliminar usuario.
+                eliminarUsuario(listaUsuarios);
                 break;
             case 3:
-            	//Buscar usuario.
+                buscarUsuario(*listaUsuarios);
                 break;
             case 4:
-                //Visualizar datos del usuario.
+                visualizarUsuarios(*listaUsuarios);
                 break;
             case 5:
-                //Editar datos del usuario.
+                editarUsuario(*listaUsuarios);
                 break;
             default:
-                puts("ERROR. Opcion desconocida."); //opción desconocida.
-                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
+                puts("ERROR. Opcion desconocida.");
+                system("pause");
                 break;
         }
     } while (op != 0);
 
     return 0;
 }
+
+void agregarUsuario(Lista_usuarios **listaUsuarios) {
+    Lista_usuarios *nuevoUsuario = (Lista_usuarios *)malloc(sizeof(Lista_usuarios));
+
+    // Solicitar al usuario que ingrese los datos o proporcionarlos desde algún otro lugar.
+    printf("Ingrese el ID del usuario: ");
+    scanf("%d", &nuevoUsuario->datos_usuario.ID_usuario);
+
+    printf("Ingrese el nombre del usuario: ");
+    scanf("%s", nuevoUsuario->datos_usuario.nombre);
+
+    printf("Ingrese el apellido del usuario: ");
+    scanf("%s", nuevoUsuario->datos_usuario.apellido);
+
+    printf("Ingrese la edad del usuario: ");
+    scanf("%d", &nuevoUsuario->datos_usuario.edad);
+
+    printf("Ingrese el teléfono del usuario: ");
+    scanf("%s", nuevoUsuario->datos_usuario.telefono);
+
+    printf("Ingrese la dirección del usuario: ");
+    scanf("%s", nuevoUsuario->datos_usuario.direccion);
+
+    printf("Ingrese el código postal del usuario: ");
+    scanf("%s", nuevoUsuario->datos_usuario.cp);
+
+    nuevoUsuario->sig = *listaUsuarios;
+    *listaUsuarios = nuevoUsuario;
+
+    printf("Usuario agregado con éxito.\n");
+    system("pause");
+}
+
+// Función para eliminar un usuario por ID.
+void eliminarUsuario(Lista_usuarios **listaUsuarios) {
+    int idUsuario;
+    printf("Ingrese el ID del usuario a eliminar: ");
+    scanf("%d", &idUsuario);
+    
+    Lista_usuarios *actual = *listaUsuarios;
+    Lista_usuarios *anterior = NULL;
+
+    while (actual != NULL && actual->datos_usuario.ID_usuario != idUsuario) {
+        anterior = actual;
+        actual = actual->sig;
+    }
+
+    if (actual == NULL) {
+        printf("Usuario no encontrado.\n");
+        return;
+    }
+
+    if (anterior == NULL) {
+        *listaUsuarios = actual->sig;
+    } else {
+        anterior->sig = actual->sig;
+    }
+
+    free(actual);
+    printf("Usuario eliminado con éxito.\n");
+    system("pause");
+}
+
+// Función para buscar un usuario por ID.
+void buscarUsuario(Lista_usuarios *listaUsuarios) {
+    int idUsuario;
+    printf("Ingrese el ID del usuario a buscar: ");
+    scanf("%d", &idUsuario);
+
+    while (listaUsuarios != NULL) {
+        if (listaUsuarios->datos_usuario.ID_usuario == idUsuario) {
+            printf("ID: %d\nNombre: %s %s\nEdad: %d\nTeléfono: %s\nDirección: %s\nCódigo Postal: %s\n",
+                listaUsuarios->datos_usuario.ID_usuario,
+                listaUsuarios->datos_usuario.nombre,
+                listaUsuarios->datos_usuario.apellido,
+                listaUsuarios->datos_usuario.edad,
+                listaUsuarios->datos_usuario.telefono,
+                listaUsuarios->datos_usuario.direccion,
+                listaUsuarios->datos_usuario.cp);
+            system("pause");
+            return;
+        }
+
+        listaUsuarios = listaUsuarios->sig;
+    }
+
+    printf("Usuario no encontrado.\n");
+    system("pause");
+}
+
+// Función para visualizar todos los usuarios.
+void visualizarUsuarios(Lista_usuarios *listaUsuarios) {
+    while (listaUsuarios != NULL) {
+        printf("ID: %d\nNombre: %s %s\nEdad: %d\nTeléfono: %s\nDirección: %s\nCódigo Postal: %s\n\n",
+            listaUsuarios->datos_usuario.ID_usuario,
+            listaUsuarios->datos_usuario.nombre,
+            listaUsuarios->datos_usuario.apellido,
+            listaUsuarios->datos_usuario.edad,
+            listaUsuarios->datos_usuario.telefono,
+            listaUsuarios->datos_usuario.direccion,
+            listaUsuarios->datos_usuario.cp);
+        listaUsuarios = listaUsuarios->sig; 
+    }
+    system("pause");  
+}
+
+// Función para editar los datos de un usuario por ID.
+void editarUsuario(Lista_usuarios *listaUsuarios) {
+    int idUsuario;
+    printf("Ingrese el ID del usuario a editar: ");
+    scanf("%d", &idUsuario);
+
+    while (listaUsuarios != NULL) {
+        if (listaUsuarios->datos_usuario.ID_usuario == idUsuario) {
+            // Solicitar al usuario que ingrese los nuevos datos o modificarlos desde algún otro lugar.
+            printf("Ingrese el nuevo nombre: ");
+            scanf("%s", listaUsuarios->datos_usuario.nombre);
+
+            printf("Ingrese el nuevo apellido: ");
+            scanf("%s", listaUsuarios->datos_usuario.apellido);
+
+            printf("Ingrese la nueva edad: ");
+            scanf("%d", &listaUsuarios->datos_usuario.edad);
+
+            printf("Ingrese el nuevo teléfono: ");
+            scanf("%s", listaUsuarios->datos_usuario.telefono);
+
+            printf("Ingrese la nueva dirección: ");
+            scanf("%s", listaUsuarios->datos_usuario.direccion);
+
+            printf("Ingrese el nuevo código postal: ");
+            scanf("%s", listaUsuarios->datos_usuario.cp);
+
+            printf("Usuario editado con éxito.\n");
+            system("pause");
+            return;
+        }
+
+        listaUsuarios = listaUsuarios->sig;
+    }
+
+    printf("Usuario no encontrado.\n");
+    system("pause");
+}
+
 
 //Creamos una función para el menú de los libros.
 int menulibros(){
@@ -439,5 +589,17 @@ int multas(){
 
 
 int main(int argc, char** argv) {
-	libreria(); //mandamos  llamar a la función librería para que se pueda ejecutar nuestro programa,
+    Lista_usuarios *listaUsuarios = NULL;
+
+    // Llamamos a la función de gestión de usuarios desde el menú principal.
+    libreria(&listaUsuarios);
+
+    // Liberamos la memoria al final del programa.
+    while (listaUsuarios != NULL) {
+        Lista_usuarios *temp = listaUsuarios;
+        listaUsuarios = listaUsuarios->sig;
+        free(temp);
+    }
+
+    return 0;
 }
