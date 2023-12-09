@@ -1402,9 +1402,6 @@ int devolucion(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prest
 			    mostrarDetallesDevolucionPorID(*listaDevoluciones, ID_devolucion);
 			    system("pause");
 			    break;
-			case 0:
-                puts("Volviendo al menu principal...");
-                break;
             default:
                 puts("ERROR. Opción desconocida.");
                 system("pause");
