@@ -73,13 +73,22 @@ typedef struct lista_devoluciones {
 
 // Estructura con los datos de las multas.
 typedef struct multas {
-    int ID_usuario;
-    char ID_libro[5];
+    int ID_prestamo;
     int monto;
     time_t fecha_devolver;  // Uso de time_t
+    int diasatraso;
+    int precioxdia;
     char razon[50];
     char metododepago[20];
-} Multas;
+    struct multas *anterior;
+    struct multas *siguiente;
+}Multas;
+
+// Estructura de la cola doble
+typedef struct cola_multas {
+    Multas *frente;
+    Multas *final;
+}Cola_multas;
 
 // Estructura para los recordatorios.
 typedef struct recordatorio {
@@ -134,12 +143,24 @@ void mostrarTodasLasDevoluciones(Lista_devoluciones *listaDevoluciones);
 Devolucion* buscarDevolucionPorID(Lista_devoluciones *listaDevoluciones, int ID_devolucion);
 void imprimirFecha(time_t tiempo);
 void mostrarDetallesDevolucionPorID(Lista_devoluciones *listaDevoluciones, int ID_devolucion);
+void imprimirDatosUsuario(Usuario *usuario);
+void iniciarcoladoble(Cola_multas *cola_multas);
+int coladoble(Cola_multas *cola_multas);
+void encolarfrente(Cola_multas *cola_multas, Multas **nuevaMulta);
+void encolarfinal(Cola_multas *cola_multas, Multas *nuevaMulta);
+Multas *desencolarfrente(Cola_multas *cola_multas);
+Multas *desencolarfinal(Cola_multas *cola_multas);
+void mostrarmulta(Multas *multa);
+void multanumero(Cola_multas *cola_multas);
+void registrarmulta(Cola_multas *cola_multas, Lista_prestamos *listaPrestamos);
+
+
 //Datos precargados
 void inicializarDatosEstaticos(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros) {
     Usuario usuarioEstatico = {
         .ID_usuario = 1,
         .nombre = "Juan",
-        .apellido = "Pérez",
+        .apellido = "Perez",
         .edad = 30,
         .telefono = "1234567890",
         .direccion = "Calle Falsa 123",
@@ -157,13 +178,13 @@ void inicializarDatosEstaticos(Lista_usuarios **listaUsuarios, NodoAVL **raizLib
     // Crear un libro estático
     Libros libroEstatico = {
         .ID_libro = "L1",
-        .titulo = "Programación en C",
+        .titulo = "Programacion en C",
         .autor = "Brian Kernighan",
-        .categoria = "Educación",
+        .categoria = "Educacion",
         .editorial = "Prentice Hall",
         .idioma = "Español",
         .paginas = 272,
-        .descripcion = "Un libro clásico sobre programación en C.",
+        .descripcion = "Un libro clasico sobre programacion en C.",
         .fechalanzamiento = "1988-02-22",
         .cantidad = 5  // Suponiendo que hay 5 copias disponibles
     };
@@ -270,6 +291,7 @@ NodoAVL* agregarLibroAVL(NodoAVL* raiz, Libros libro) {
 
 //MOSTRAR DATOS DE LOS LIBROS
 void mostrarLibro(Libros libro){
+    system("cls");
 	printf("ID Libro: %s\n",libro.ID_libro);
 	printf("Titulo: %s\n", libro.titulo);
 	printf("Autor: %s\n", libro.autor);
@@ -438,16 +460,17 @@ Usuario* buscarUsuarioPorID(Lista_usuarios *listaUsuarios, int ID_usuario) {
 void mostrarDetallesPrestamoPorID(Lista_prestamos* lista, int ID_prestamo) {
     Prestamo* prestamo = buscarPrestamoPorID(lista, ID_prestamo);
     if (prestamo != NULL) {
-        printf("Detalles del préstamo ID %d:\n", ID_prestamo);
+        system("cls");
+        printf("Detalles del prestamo ID %d:\n", ID_prestamo);
         printf("ID Usuario: %d\n", prestamo->ID_usuario);
         printf("ID Libro: %s\n", prestamo->ID_libro);
-        printf("Fecha Pedido: ");
+        printf("Fecha pedido: ");
         imprimirFecha(prestamo->fecha_pedido);
-        printf("\nFecha Devolver: ");
+        printf("\nFecha devolver: ");
         imprimirFecha(prestamo->fecha_devolver);
         printf("\n");
     } else {
-        printf("Préstamo con ID %d no encontrado.\n", ID_prestamo);
+        printf("Prestamo con ID %d no encontrado.\n", ID_prestamo);
     }
 }
 
@@ -455,7 +478,7 @@ void mostrarDetallesPrestamoPorID(Lista_prestamos* lista, int ID_prestamo) {
 int crearPrestamo(Lista_usuarios *listaUsuarios, NodoAVL *raizLibros, Lista_prestamos **listaPrestamos, int ID_prestamo, int ID_usuario, char *ID_libro) {
     // Verificar si el préstamo ya existe
     if (buscarPrestamoPorID(*listaPrestamos, ID_prestamo) != NULL) {
-        printf("Ya existe un préstamo con el ID %d.\n", ID_prestamo);
+        printf("Ya existe un prestamo con el ID %d.\n", ID_prestamo);
         return 0; // El préstamo ya existe
     }
 
@@ -469,7 +492,7 @@ int crearPrestamo(Lista_usuarios *listaUsuarios, NodoAVL *raizLibros, Lista_pres
     // Verificar si el libro existe y tiene copias disponibles
     NodoAVL *libroEncontrado = buscarLibro(raizLibros, ID_libro);
     if (libroEncontrado == NULL || libroEncontrado->datos_libro.cantidad <= 0) {
-        printf("Libro con ID %s no disponible para préstamo.\n", ID_libro);
+        printf("Libro con ID %s no disponible para prestamo.\n", ID_libro);
         return 0; // El libro no existe o no tiene copias disponibles
     }
 
@@ -490,8 +513,8 @@ int crearPrestamo(Lista_usuarios *listaUsuarios, NodoAVL *raizLibros, Lista_pres
 
     // Agregar el préstamo a la lista
     agregarPrestamo(listaPrestamos, nuevoPrestamo);
-
-    printf("Préstamo con ID %d creado con éxito. Fecha de devolución: ", ID_prestamo);
+    system("cls");
+    printf("Prestamo con ID %d creado con exito. \n Fecha de devolucion: ", ID_prestamo);
     imprimirFecha(nuevoPrestamo.fecha_devolver);
     printf("\n");
 
@@ -502,7 +525,8 @@ int crearPrestamo(Lista_usuarios *listaUsuarios, NodoAVL *raizLibros, Lista_pres
 void agregarPrestamo(Lista_prestamos **listaPrestamos, Prestamo nuevoPrestamo) {
     Lista_prestamos *nuevoNodo = (Lista_prestamos *)malloc(sizeof(Lista_prestamos));
     if (nuevoNodo == NULL) {
-        printf("Error de memoria al intentar agregar un nuevo préstamo.\n");
+        system("cls");
+        printf("Error de memoria al intentar agregar un nuevo prestamo.\n");
         return;
     }
 
@@ -517,7 +541,8 @@ void GestionarNuevoPrestamo(Lista_usuarios *listaUsuarios, NodoAVL *raizLibros, 
     char ID_libro[6]; // Asumiendo que ID_libro tiene una longitud máxima de 5 caracteres + 1 para el carácter nulo
 
     // Obtener datos del usuario
-    printf("Ingrese el ID del usuario para el préstamo: ");
+    system("cls");
+    printf("Ingrese el ID del usuario para el prestamo: \n");
     scanf("%d", &ID_usuario);
     Usuario *usuarioEncontrado = buscarUsuarioPorID(listaUsuarios, ID_usuario);
     if (usuarioEncontrado == NULL) {
@@ -526,23 +551,23 @@ void GestionarNuevoPrestamo(Lista_usuarios *listaUsuarios, NodoAVL *raizLibros, 
     }
 
     // Obtener datos del libro
-    printf("Ingrese el ID del libro para el préstamo: ");
+    printf("Ingrese el ID del libro para el prestamo: \n");
     scanf("%5s", ID_libro); // Usar %5s para limitar el tamaño de la entrada y evitar desbordamientos
     NodoAVL *libroEncontrado = buscarLibro(raizLibros, ID_libro);
     if (libroEncontrado == NULL || libroEncontrado->datos_libro.cantidad <= 0) {
-        printf("Libro no disponible para préstamo.\n");
+        printf("Libro no disponible para prestamo.\n");
         return; // Salir si el libro no se encuentra o no tiene copias disponibles
     }
 
     // Obtener el ID del préstamo
-    printf("Ingrese el ID del préstamo: ");
+    printf("Ingrese el ID del prestamo: \n");
     scanf("%d", &ID_prestamo);
 
     // Crear el préstamo
     if (crearPrestamo(listaUsuarios, raizLibros, listaPrestamos, ID_prestamo, ID_usuario, ID_libro)) {
-    printf("Préstamo creado con éxito.\n");
+    printf("Prestamo creado con exito.\n");
 } else {
-    printf("No se pudo crear el préstamo.\n");
+    printf("No se pudo crear el prestamo.\n");
 }
 }
 
@@ -567,7 +592,7 @@ void eliminarPrestamo(Lista_prestamos **listaPrestamos, NodoAVL **raizLibros, in
     }
 
     if (actual == NULL) {
-        printf("Préstamo no encontrado.\n");
+        printf("Prestamo no encontrado.\n");
         return;
     }
     
@@ -575,7 +600,7 @@ void eliminarPrestamo(Lista_prestamos **listaPrestamos, NodoAVL **raizLibros, in
     if (libroEncontrado != NULL) {
         libroEncontrado->datos_libro.cantidad++;
     } else {
-        printf("Error: Libro correspondiente al préstamo no encontrado.\n");
+        printf("Error: Libro correspondiente al prestamo no encontrado.\n");
     }
 
     if (anterior == NULL) {
@@ -584,7 +609,7 @@ void eliminarPrestamo(Lista_prestamos **listaPrestamos, NodoAVL **raizLibros, in
         anterior->sig = actual->sig;
     }
     free(actual);
-    printf("Préstamo con ID %d eliminado y libro restituido con éxito.\n", ID_prestamo);
+    printf("Prestamo con ID %d eliminado y libro restituido con exito.\n", ID_prestamo);
 }
 
 //Imprimir fecha 
@@ -603,7 +628,7 @@ void imprimirFecha(time_t tiempoRaw) {
 void buscarUsuario(Lista_usuarios *listaUsuarios) {
     system("cls");
     int idUsuario;
-    printf("Ingrese el ID del usuario a buscar: ");
+    printf("Ingrese el ID del usuario a buscar: \n");
     scanf("%d", &idUsuario);
 
     Usuario *usuarioEncontrado = buscarUsuarioPorID(listaUsuarios, idUsuario);
@@ -632,7 +657,7 @@ void realizarDevolucion(Lista_prestamos **listaPrestamos, NodoAVL **raizLibros, 
     // Buscar el préstamo
     Prestamo *prestamoEncontrado = buscarPrestamoPorID(*listaPrestamos, ID_prestamo);
     if (prestamoEncontrado == NULL) {
-        printf("Préstamo con ID %d no encontrado.\n", ID_prestamo);
+        printf("Prestamo con ID %d no encontrado.\n", ID_prestamo);
         return;
     }
 
@@ -641,7 +666,7 @@ void realizarDevolucion(Lista_prestamos **listaPrestamos, NodoAVL **raizLibros, 
     if (libroEncontrado != NULL) {
         libroEncontrado->datos_libro.cantidad++;
     } else {
-        printf("Error: Libro correspondiente al préstamo no encontrado.\n");
+        printf("Error: Libro correspondiente al prestamo no encontrado.\n");
         return;
     }
 
@@ -656,28 +681,29 @@ void realizarDevolucion(Lista_prestamos **listaPrestamos, NodoAVL **raizLibros, 
     // Agregar la devolución a la lista
     Lista_devoluciones *nuevoNodo = (Lista_devoluciones *)malloc(sizeof(Lista_devoluciones));
     if (nuevoNodo == NULL) {
-        printf("Error de memoria al intentar agregar una nueva devolución.\n");
+        printf("Error de memoria al intentar agregar una nueva devolucion.\n");
         return;
     }
     nuevoNodo->datos_devolucion = nuevaDevolucion;
     nuevoNodo->sig = *listaDevoluciones;
     *listaDevoluciones = nuevoNodo;
 
-    printf("Devolución registrada con éxito.\n");
+    printf("Devolucion registrada con éxito.\n");
 }
 
 //Mostrar los detalles de una devolución por su ID
 void mostrarDetallesDevolucionPorID(Lista_devoluciones *listaDevoluciones, int ID_devolucion) {
     Devolucion* devolucion = buscarDevolucionPorID(listaDevoluciones, ID_devolucion);
     if (devolucion != NULL) {
-        printf("Detalles de la devolución ID %d:\n", ID_devolucion);
+        system("cls");
+        printf("Detalles de la devolucion ID %d:\n", ID_devolucion);
         printf("ID Usuario: %d\n", devolucion->ID_usuario);
         printf("ID Libro: %s\n", devolucion->ID_libro);
-        printf("Fecha Devolución: ");
+        printf("Fecha Devolucion: \n");
         imprimirFecha(devolucion->fecha_devolucion);
         printf("\n");
     } else {
-        printf("Devolución con ID %d no encontrada.\n", ID_devolucion);
+        printf("Devolucion con ID %d no encontrada.\n", ID_devolucion);
     }
 }
 
@@ -706,13 +732,13 @@ int menuprincipal(){
 	puts("[4] Multas y recordatorios.");
 	puts("[5] Notificaciones.");
 	puts("[0] SALIR.\n");
-	printf("Ingrese una opcion: ");
+	printf("Ingrese una opcion: \n");
 	scanf("%d", &opcion);
 	return opcion;
 }
 
 //Función para manejar la gestión de la librería. 
-int libreria(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prestamos **listaPrestamos, Lista_devoluciones **listaDevoluciones) {
+int libreria(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prestamos **listaPrestamos, Lista_devoluciones **listaDevoluciones, Cola_multas **cola_multas) {
     int op = 0;
     do {
         op = menuprincipal();
@@ -733,7 +759,7 @@ int libreria(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prestam
     			transaccion(listaUsuarios, raizLibros, listaPrestamos, listaDevoluciones);
     			break;
             case 4:
-                multas();
+                multas(&cola_multas, listaPrestamos);
                 break;
             case 5:
                 // Funcionalidad de notificaciones
@@ -808,45 +834,45 @@ void agregarUsuario(Lista_usuarios **listaUsuarios) {
     system("cls");
     Lista_usuarios *nuevoUsuario = (Lista_usuarios *)malloc(sizeof(Lista_usuarios));
 
-    printf("Ingrese el ID del usuario: ");
+    printf("Ingrese el ID del usuario: \n");
     scanf("%d", &nuevoUsuario->datos_usuario.ID_usuario);
     getchar();
 
-    printf("Ingrese el nombre del usuario: ");
+    printf("Ingrese el nombre del usuario: \n");
     fgets(nuevoUsuario->datos_usuario.nombre, 50, stdin);
     nuevoUsuario->datos_usuario.nombre[strcspn(nuevoUsuario->datos_usuario.nombre, "\n")] = 0;
 
-    printf("Ingrese el apellido del usuario: ");
+    printf("Ingrese el apellido del usuario: \n");
     fgets(nuevoUsuario->datos_usuario.apellido, 50, stdin);
     nuevoUsuario->datos_usuario.apellido[strcspn(nuevoUsuario->datos_usuario.apellido, "\n")] = 0;
 
-    printf("Ingrese la edad del usuario: ");
+    printf("Ingrese la edad del usuario: \n");
     scanf("%d", &nuevoUsuario->datos_usuario.edad);
     getchar(); 
 
-    printf("Ingrese el teléfono del usuario: ");
+    printf("Ingrese el telefono del usuario: \n");
     fgets(nuevoUsuario->datos_usuario.telefono, 20, stdin);
     nuevoUsuario->datos_usuario.telefono[strcspn(nuevoUsuario->datos_usuario.telefono, "\n")] = 0;
 
-    printf("Ingrese la dirección del usuario: ");
+    printf("Ingrese la direccion del usuario: \n");
     fgets(nuevoUsuario->datos_usuario.direccion, 100, stdin);
     nuevoUsuario->datos_usuario.direccion[strcspn(nuevoUsuario->datos_usuario.direccion, "\n")] = 0;
 
-    printf("Ingrese el código postal del usuario: ");
+    printf("Ingrese el codigo postal del usuario: \n");
     fgets(nuevoUsuario->datos_usuario.cp, 10, stdin);
     nuevoUsuario->datos_usuario.cp[strcspn(nuevoUsuario->datos_usuario.cp, "\n")] = 0;
 
     nuevoUsuario->sig = *listaUsuarios;
     *listaUsuarios = nuevoUsuario;
 
-    printf("Usuario agregado con éxito.\n");
+    printf("Usuario agregado con exito.\n");
 }
 
 // Función para eliminar un usuario por ID.
 void eliminarUsuario(Lista_usuarios **listaUsuarios) {
     system("cls");
     int idUsuario;
-    printf("Ingrese el ID del usuario a eliminar: ");
+    printf("Ingrese el ID del usuario a eliminar: \n");
     scanf("%d", &idUsuario);
     
     Lista_usuarios *actual = *listaUsuarios;
@@ -869,13 +895,13 @@ void eliminarUsuario(Lista_usuarios **listaUsuarios) {
     }
 
     free(actual);
-    printf("Usuario eliminado con éxito.\n");
+    printf("Usuario eliminado con exito.\n");
     system("pause");
 }
 
 // Imprime la información del usuario.
 void imprimirDatosUsuario(Usuario *usuario) {
-    printf("ID: %d\nNombre: %s %s\nEdad: %d\nTeléfono: %s\nDirección: %s\nCódigo Postal: %s\n",
+    printf("\n ID: %d\nNombre: %s %s\nEdad: %d\nTelefono: %s\nDireccion: %s\nCodigo Postal: %s\n",
            usuario->ID_usuario,
            usuario->nombre,
            usuario->apellido,
@@ -887,14 +913,13 @@ void imprimirDatosUsuario(Usuario *usuario) {
 
 // Función para mostrar los datos de un usuario especifico
 void visualizarUsuario(Usuario usuario) {
-    system("cls");
     printf("ID: %d\n", usuario.ID_usuario);
     printf("Nombre: %s\n", usuario.nombre);
     printf("Apellido: %s\n", usuario.apellido);
     printf("Edad: %d\n", usuario.edad);
-    printf("Teléfono: %s\n", usuario.telefono);
-    printf("Dirección: %s\n", usuario.direccion);
-    printf("Código Postal: %s\n", usuario.cp);
+    printf("Telefono: %s\n", usuario.telefono);
+    printf("Direccion: %s\n", usuario.direccion);
+    printf("Codigo Postal: %s\n", usuario.cp);
 }
 
 // Función para visualizar todos los usuarios.
@@ -912,7 +937,7 @@ void visualizarUsuarios(Lista_usuarios *listaUsuarios) {
 void editarUsuario(Lista_usuarios **listaUsuarios) {
     system("cls");
     int idUsuario;
-    printf("Ingrese el ID del usuario a editar: ");
+    printf("Ingrese el ID del usuario a editar: \n");
     scanf("%d", &idUsuario);
 
     Lista_usuarios *actual = *listaUsuarios;
@@ -926,9 +951,9 @@ void editarUsuario(Lista_usuarios **listaUsuarios) {
 
             // Preguntamos al usuario si desea editar todos los datos o un dato específico
             int opcionEdicion;
-            printf("Seleccione la opción de edición:\n");
+            printf("Seleccione la opcion de edicion:\n");
             printf("[1] Todos los datos\n");
-            printf("[2] Dato específico\n");
+            printf("[2] Dato especifico\n");
             printf("Ingrese una opcion: ");
             scanf("%d", &opcionEdicion);
 
@@ -937,38 +962,38 @@ void editarUsuario(Lista_usuarios **listaUsuarios) {
 
             if (opcionEdicion == 1) {
                 // Edición de todos los datos
-                printf("Ingrese el nuevo nombre: ");
+                printf("Ingrese el nuevo nombre: \n");
                 fgets(actual->datos_usuario.nombre, sizeof(actual->datos_usuario.nombre), stdin);
                 actual->datos_usuario.nombre[strcspn(actual->datos_usuario.nombre, "\n")] = 0;  // Elimina el salto de línea al final
 
-                printf("Ingrese el nuevo apellido: ");
+                printf("Ingrese el nuevo apellido: \n");
                 fgets(actual->datos_usuario.apellido, sizeof(actual->datos_usuario.apellido), stdin);
                 actual->datos_usuario.apellido[strcspn(actual->datos_usuario.apellido, "\n")] = 0;  // Elimina el salto de línea al final
 
-                printf("Ingrese la nueva edad: ");
+                printf("Ingrese la nueva edad: \n");
                 scanf("%d", &actual->datos_usuario.edad);
 
-                printf("Ingrese el nuevo teléfono: ");
+                printf("Ingrese el nuevo telefono: \n");
                 fgets(actual->datos_usuario.telefono, sizeof(actual->datos_usuario.telefono), stdin);
                 actual->datos_usuario.telefono[strcspn(actual->datos_usuario.telefono, "\n")] = 0;
 
-                printf("Ingrese la nueva dirección: ");
+                printf("Ingrese la nueva direccion: \n");
                 fgets(actual->datos_usuario.direccion, sizeof(actual->datos_usuario.direccion), stdin);
                 actual->datos_usuario.direccion[strcspn(actual->datos_usuario.direccion, "\n")] = 0;
 
-                printf("Ingrese el nuevo código postal: ");
+                printf("Ingrese el nuevo codigo postal: \n");
                 fgets(actual->datos_usuario.cp, sizeof(actual->datos_usuario.cp), stdin);
                 actual->datos_usuario.cp[strcspn(actual->datos_usuario.cp, "\n")] = 0;
                 
             } else if (opcionEdicion == 2) {
                 int opcionCampo;
                 printf("Seleccione el campo a editar:\n");
-                printf("[1] Nombre\n");
-                printf("[2] Apellido\n");
-                printf("[3] Edad\n");
-                printf("[4] Teléfono\n");
-                printf("[5] Dirección\n");
-                printf("[6] Código Postal\n");
+                printf("[1] Nombre. \n");
+                printf("[2] Apellido. \n");
+                printf("[3] Edad. \n");
+                printf("[4] Telefono. \n");
+                printf("[5] Direccion. \n");
+                printf("[6] Codigo Postal. \n");
 
                 printf("Ingrese una opcion: ");
                 scanf("%d", &opcionCampo);
@@ -982,50 +1007,50 @@ void editarUsuario(Lista_usuarios **listaUsuarios) {
                 // Realizamos la edición según la opción seleccionada
                 switch (opcionCampo) {
                     case 1:
-                        printf("Ingrese el nuevo nombre: ");
+                        printf("Ingrese el nuevo nombre: \n");
                         fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
                         nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;  // Elimina el salto de línea al final
                         strncpy(actual->datos_usuario.nombre, nuevaInfo, sizeof(actual->datos_usuario.nombre) - 1);
                         break;
                     case 2:
-                        printf("Ingrese el nuevo apellido: ");
+                        printf("Ingrese el nuevo apellido: \n");
                         fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
                         nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;  // Elimina el salto de línea al final
                         strncpy(actual->datos_usuario.apellido, nuevaInfo, sizeof(actual->datos_usuario.apellido) - 1);
                         break;
                     case 3:
-                        printf("Ingrese la nueva edad: ");
+                        printf("Ingrese la nueva edad: \n");
                         fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
                         actual->datos_usuario.edad = atoi(nuevaInfo);
                         break;
                     case 4:
-                        printf("Ingrese el nuevo teléfono: ");
+                        printf("Ingrese el nuevo telefono: \n");
                         fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
                         nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;
                         strncpy(actual->datos_usuario.telefono, nuevaInfo, sizeof(actual->datos_usuario.telefono) - 1);
                         break;
                     case 5:
-                        printf("Ingrese la nueva dirección: ");
+                        printf("Ingrese la nueva direccion: \n");
                         fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
                         nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;
                         strncpy(actual->datos_usuario.direccion, nuevaInfo, sizeof(actual->datos_usuario.direccion) - 1);
                         break;
                     case 6:
-                        printf("Ingrese el nuevo código postal: ");
+                        printf("Ingrese el nuevo codigo postal: \n");
                         fgets(nuevaInfo, sizeof(nuevaInfo), stdin);
                         nuevaInfo[strcspn(nuevaInfo, "\n")] = 0;
                         strncpy(actual->datos_usuario.cp, nuevaInfo, sizeof(actual->datos_usuario.cp) - 1);
                         break;
                     default:
-                        printf("Opción no válida.\n");
+                        printf("Opcion no valida.\n");
                         break;
                 }
             } else {
-                printf("Opción no válida.\n");
+                printf("Opcion no valida.\n");
                 return;
             }
 
-            printf("Usuario editado con éxito.\n");
+            printf("Usuario editado con exito.\n");
             return;
         }
 
@@ -1069,43 +1094,43 @@ int libros(NodoAVL **raiz) {
                 break;
             case 1:
 	                getchar(); 
-	                printf("Ingrese el ID del libro: ");
+	                printf("Ingrese el ID del libro: \n");
 	                fgets(libro.ID_libro, sizeof(libro.ID_libro), stdin);
 	                libro.ID_libro[strcspn(libro.ID_libro, "\n")] = 0;
 	
-	                printf("Ingrese el título del libro: ");
+	                printf("Ingrese el titulo del libro: \n");
 	                fgets(libro.titulo, sizeof(libro.titulo), stdin);
 	                libro.titulo[strcspn(libro.titulo, "\n")] = 0;
 	
-	                printf("Ingrese el autor del libro: ");
+	                printf("Ingrese el autor del libro: \n");
 	                fgets(libro.autor, sizeof(libro.autor), stdin);
 	                libro.autor[strcspn(libro.autor, "\n")] = 0;
 	
-	                printf("Ingrese la categoría del libro: ");
+	                printf("Ingrese la categoria del libro: \n");
 	                fgets(libro.categoria, sizeof(libro.categoria), stdin);
 	                libro.categoria[strcspn(libro.categoria, "\n")] = 0;
 	
-	                printf("Ingrese la editorial del libro: ");
+	                printf("Ingrese la editorial del libro: \n");
 	                fgets(libro.editorial, sizeof(libro.editorial), stdin);
 	                libro.editorial[strcspn(libro.editorial, "\n")] = 0;
 	
-	                printf("Ingrese el idioma del libro: ");
+	                printf("Ingrese el idioma del libro: \n");
 	                fgets(libro.idioma, sizeof(libro.idioma), stdin);
 	                libro.idioma[strcspn(libro.idioma, "\n")] = 0;
 	
-	                printf("Ingrese el número de páginas del libro: ");
+	                printf("Ingrese el numero de paginas del libro: \n");
 	                scanf("%d", &libro.paginas);
 	                getchar(); 
 	
-	                printf("Ingrese la descripción del libro: ");
+	                printf("Ingrese la descripcion del libro: \n");
 	                fgets(libro.descripcion, sizeof(libro.descripcion), stdin);
 	                libro.descripcion[strcspn(libro.descripcion, "\n")] = 0;
 	
-	                printf("Ingrese la fecha de lanzamiento del libro (formato AAAA-MM-DD): ");
+	                printf("Ingrese la fecha de lanzamiento del libro (formato AAAA-MM-DD): \n");
 	                fgets(libro.fechalanzamiento, sizeof(libro.fechalanzamiento), stdin);
 	                libro.fechalanzamiento[strcspn(libro.fechalanzamiento, "\n")] = 0;
 	                
-					printf("Ingrese la cantidad de copias del libro: ");
+					printf("Ingrese la cantidad de copias del libro: \n");
 					scanf("%d", &libro.cantidad);
 					getchar(); 
 
@@ -1115,18 +1140,18 @@ int libros(NodoAVL **raiz) {
 	                break;
             case 2: // Eliminar libro
 				    getchar(); // Limpiar buffer después de scanf
-				    printf("Ingrese el ID del libro que desea eliminar: ");
+				    printf("Ingrese el ID del libro que desea eliminar: \n");
 				    fgets(id_libro, sizeof(id_libro), stdin);
 				    id_libro[strcspn(id_libro, "\n")] = 0; // Remover salto de línea
 				
 				    *raiz = eliminarLibro(*raiz, id_libro);
-				    printf("Libro eliminado (si existía).\n");
+				    printf("Libro eliminado (si existia).\n");
 				    system("pause");
 				    break;
 
             case 3: // Buscar libro
 				    getchar(); // Limpiar buffer después de scanf
-				    printf("Ingrese el ID del libro que desea buscar: ");
+				    printf("Ingrese el ID del libro que desea buscar: \n");
 				    fgets(id_libro, sizeof(id_libro), stdin);
 				    id_libro[strcspn(id_libro, "\n")] = 0; // Remover salto de línea
 				
@@ -1138,55 +1163,55 @@ int libros(NodoAVL **raiz) {
 				    break;
             case 4: // Editar libro
 				    getchar(); // Limpiar el buffer del stdin
-				    printf("Ingrese el ID del libro que desea editar: ");
+				    printf("Ingrese el ID del libro que desea editar: \n");
 				    fgets(id_libro, sizeof(id_libro), stdin);
 				    id_libro[strcspn(id_libro, "\n")] = 0; // Remover el salto de línea al final
 				
 				    libroEncontrado = buscarLibro(*raiz, id_libro);
 				    if (libroEncontrado != NULL) {
-				        printf("Editar los datos del libro:\n");
+				        printf("Editar los datos del libro: \n");
 				        
-				        printf("Ingrese el nuevo título del libro: ");
+				        printf("Ingrese el nuevo titulo del libro: \n");
 				        fgets(libro.titulo, sizeof(libro.titulo), stdin);
 				        libro.titulo[strcspn(libro.titulo, "\n")] = 0;
 				
-				        printf("Ingrese el nuevo autor del libro: ");
+				        printf("Ingrese el nuevo autor del libro: \n");
 				        fgets(libro.autor, sizeof(libro.autor), stdin);
 				        libro.autor[strcspn(libro.autor, "\n")] = 0;
 				
-				        printf("Ingrese la nueva categoría del libro: ");
+				        printf("Ingrese la nueva categoria del libro: \n");
 				        fgets(libro.categoria, sizeof(libro.categoria), stdin);
 				        libro.categoria[strcspn(libro.categoria, "\n")] = 0;
 				
-				        printf("Ingrese la nueva editorial del libro: ");
+				        printf("Ingrese la nueva editorial del libro: \n");
 				        fgets(libro.editorial, sizeof(libro.editorial), stdin);
 				        libro.editorial[strcspn(libro.editorial, "\n")] = 0;
 				
-				        printf("Ingrese el nuevo idioma del libro: ");
+				        printf("Ingrese el nuevo idioma del libro: \n");
 				        fgets(libro.idioma, sizeof(libro.idioma), stdin);
 				        libro.idioma[strcspn(libro.idioma, "\n")] = 0;
 				
-				        printf("Ingrese el nuevo número de páginas del libro: ");
+				        printf("Ingrese el nuevo numero de paginas del libro: \n");
 				        scanf("%d", &libro.paginas);
 				        getchar(); // Limpiar el buffer del stdin después de scanf
 				
-				        printf("Ingrese la nueva descripción del libro: ");
+				        printf("Ingrese la nueva descripcion del libro: \n");
 				        fgets(libro.descripcion, sizeof(libro.descripcion), stdin);
 				        libro.descripcion[strcspn(libro.descripcion, "\n")] = 0;
 				
-				        printf("Ingrese la nueva fecha de lanzamiento del libro (formato AAAA-MM-DD): ");
+				        printf("Ingrese la nueva fecha de lanzamiento del libro (formato AAAA-MM-DD): \n");
 				        fgets(libro.fechalanzamiento, sizeof(libro.fechalanzamiento), stdin);
 				        libro.fechalanzamiento[strcspn(libro.fechalanzamiento, "\n")] = 0;
 				        
-				        printf("Ingrese la nueva cantidad de libros: ");
-        scanf("%d", &libro.cantidad);
-        getchar();
+				        printf("Ingrese la nueva cantidad de libros: \n");
+                        scanf("%d", &libro.cantidad);
+                        getchar();
 				
 				        // Aquí asumimos que la función modificarLibro reemplaza el libro en el nodo encontrado
 				        printf("\n");	
 				        printf("DATOS ANTERIORES\n");
 				        modificarLibro(*raiz, id_libro, libro);
-				        printf("Libro modificado con éxito.\n");
+				        printf("Libro modificado con exito.\n");
 				    } else {
 				        printf("Libro con ID %s no encontrado.\n", id_libro);
 				    }
@@ -1277,11 +1302,11 @@ int prestamo(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prestam
                 system("pause");
                 break;
             case 1: // Nuevo préstamo
-                printf("Ingrese el ID del préstamo: ");
+                printf("Ingrese el ID del prestamo: \n");
                 scanf("%d", &ID_prestamo);
                 getchar(); // Limpiar buffer
 
-                printf("Ingrese el ID del usuario: ");
+                printf("Ingrese el ID del usuario: \n");
                 scanf("%d", &ID_usuario);
                 getchar(); // Limpiar buffer
 
@@ -1291,61 +1316,63 @@ int prestamo(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prestam
                     printf("Usuario con ID %d no encontrado.\n", ID_usuario);
                 }
 
-                printf("Ingrese el ID del libro: ");
+                printf("Ingrese el ID del libro: \n");
                 fgets(ID_libro, sizeof(ID_libro), stdin);
                 ID_libro[strcspn(ID_libro, "\n")] = 0; // Eliminar newline
 
                 // Verificar si el libro existe y tiene copias disponibles
                 NodoAVL* libroEncontrado = buscarLibro(*raizLibros, ID_libro);
                 if (libroEncontrado == NULL || libroEncontrado->datos_libro.cantidad <= 0) {
-                    printf("Libro no disponible para préstamo.\n");
+                    printf("Libro no disponible para prestamo.\n");
                 }
 
                 if (crearPrestamo(*listaUsuarios, *raizLibros, listaPrestamos, ID_prestamo, ID_usuario, ID_libro)) {
-                    printf("Préstamo creado con éxito.\n");
+                    printf("Prestamo creado con exito.\n");
                 } else {
-                    printf("No se pudo crear el préstamo.\n");
+                    printf("No se pudo crear el prestamo.\n");
                 }
                 system("pause");
                 break;
+
             case 2: // Mostrar todos los préstamos
     			system("cls");  // Limpia la pantalla para mostrar la lista de préstamos
-    			printf("Listado de todos los préstamos:\n\n");
+    			printf("Listado de todos los prestamos:\n\n");
     
     			if (*listaPrestamos == NULL) {
-        		printf("No hay préstamos registrados.\n");
+        		printf("No hay prestamos registrados.\n");
    				 } else {
         		Lista_prestamos *actual = *listaPrestamos;
         			while (actual != NULL) {
-            printf("ID Préstamo: %d\n", actual->datos_prestamo.ID_prestamo);
-            printf("ID Usuario: %d\n", actual->datos_prestamo.ID_usuario);
-            printf("ID Libro: %s\n", actual->datos_prestamo.ID_libro);
-            printf("Fecha Pedido: ");
-            imprimirFecha(actual->datos_prestamo.fecha_pedido);  // Asegúrate de tener esta función definida
-            printf("\nFecha Devolución: ");
-            imprimirFecha(actual->datos_prestamo.fecha_devolver);
-            printf("\n\n");
-            actual = actual->sig;
-       								 }
-    								}
-    		system("pause");  // Pausa para que el usuario pueda leer la información
-    		break;
+                        printf("ID Prestamo: %d\n", actual->datos_prestamo.ID_prestamo);
+                        printf("ID Usuario: %d\n", actual->datos_prestamo.ID_usuario);
+                        printf("ID Libro: %s\n", actual->datos_prestamo.ID_libro);
+                        printf("Fecha Pedido: \n");
+                        imprimirFecha(actual->datos_prestamo.fecha_pedido);  // Asegúrate de tener esta función definida
+                        printf("Fecha Devolucion: \n");
+                        imprimirFecha(actual->datos_prestamo.fecha_devolver);
+                         printf("\n\n");
+                         actual = actual->sig;
+                     }
+                 }
+                 system("pause");  // Pausa para que el usuario pueda leer la información
+                 break;
 
             case 3: // Cancelar préstamo
-			    printf("Ingrese el ID del préstamo a cancelar: ");
+			    printf("Ingrese el ID del prestamo a cancelar: \n");
 			    scanf("%d", &ID_prestamo);
 			    eliminarPrestamo(listaPrestamos, raizLibros, ID_prestamo); // Asegúrate de pasar la raíz del árbol aquí
 			    system("pause");
 			    break;
+
 			case 4: // Buscar préstamo por ID
-                printf("Ingrese el ID del préstamo a mostrar: ");
+                printf("Ingrese el ID del prestamo a mostrar: \n");
                 scanf("%d", &ID_prestamo);
                 getchar(); // Limpiar buffer
                 mostrarDetallesPrestamoPorID(*listaPrestamos, ID_prestamo);
                 system("pause");
                 break;
             default:
-                printf("ERROR. Opción desconocida.\n");
+                printf("ERROR. Opcion desconocida.\n");
                 system("pause");
                 break;
         }
@@ -1371,7 +1398,6 @@ int menudevolucion(){
 }
 
 //Función para manejar la gestión de devoluciones.
-//Función para manejar la gestión de devoluciones.
 int devolucion(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prestamos **listaPrestamos, Lista_devoluciones **listaDevoluciones) {
     int opo, ID_devolucion;
     int ID_prestamo;
@@ -1385,7 +1411,7 @@ int devolucion(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prest
                 system("pause");
                 break;
             case 1: // Registrar devolución
-                printf("Ingrese el ID del préstamo a devolver: ");
+                printf("Ingrese el ID del prestamo a devolver: \n");
                 scanf("%d", &ID_prestamo);
                 getchar();  // Limpiar buffer de entrada
                 realizarDevolucion(listaPrestamos, raizLibros, listaDevoluciones, ID_prestamo);
@@ -1396,14 +1422,14 @@ int devolucion(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prest
                 system("pause");
                 break;
             case 3: // Buscar devolución por ID de devolución
-			    printf("Ingrese el ID de la devolución a buscar: ");
+			    printf("Ingrese el ID de la devolucion a buscar: \n");
 			    scanf("%d", &ID_devolucion);
 			    getchar();  // Limpiar buffer de entrada
 			    mostrarDetallesDevolucionPorID(*listaDevoluciones, ID_devolucion);
 			    system("pause");
 			    break;
             default:
-                puts("ERROR. Opción desconocida.");
+                puts("ERROR. Opcion desconocida.");
                 system("pause");
                 break;
         }
@@ -1412,8 +1438,187 @@ int devolucion(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prest
     return 0;
 }
 
+// Función para inicializar la cola doble
+void iniciarcoladoble(Cola_multas *cola_multas) {
+    cola_multas->frente = cola_multas->final = NULL;
+}
+
+// Función para verificar si la cola doble de multas está vacía
+int coladoble(Cola_multas *cola_multas) {
+    return (cola_multas->frente == NULL && cola_multas->final == NULL) ? 1 : 0;
+}
 
 
+// Encolar al frente de la cola doble
+void encolarfrente(Cola_multas *cola_multas, Multas **nuevaMulta) {
+    (*nuevaMulta)->anterior = NULL;
+    (*nuevaMulta)->siguiente = cola_multas->frente;
+
+    if (coladoble(cola_multas)) {
+        cola_multas->frente = cola_multas->final = *nuevaMulta;
+    } else {
+        cola_multas->frente->anterior = *nuevaMulta;
+        cola_multas->frente = *nuevaMulta;
+    }
+}
+
+// Encolar al final de la cola doble
+void encolarfinal(Cola_multas *cola_multas, Multas *nuevaMulta) {
+    nuevaMulta->anterior = cola_multas->final;
+    nuevaMulta->siguiente = NULL;
+
+    if (coladoble(cola_multas)) {
+        cola_multas->frente = cola_multas->final = nuevaMulta;
+    } else {
+        cola_multas->final->siguiente = nuevaMulta;
+        cola_multas->final = nuevaMulta;
+    }
+}
+
+
+// Desencolar del frente de la cola doble
+Multas *desencolarfrente(Cola_multas *cola_multas) {
+    if (coladoble(cola_multas)) {
+        return NULL;
+    } else {
+        Multas *primeraMulta = cola_multas->frente;
+        cola_multas->frente = cola_multas->frente->siguiente;
+        if (cola_multas->frente == NULL) {
+            cola_multas->final = NULL;
+        } else {
+            cola_multas->frente->anterior = NULL;
+        }
+        return primeraMulta;
+    }
+}
+
+// Desencolar del final de la cola doble
+Multas *desencolarfinal(Cola_multas *cola_multas) {
+    if (coladoble(cola_multas)) {
+        return NULL;
+    } else {
+        Multas *ultimaMulta = cola_multas->final;
+        cola_multas->final = cola_multas->final->anterior;
+        if (cola_multas->final == NULL) {
+            cola_multas->frente = NULL;
+        } else {
+            cola_multas->final->siguiente = NULL;
+        }
+        return ultimaMulta;
+    }
+}
+
+// Función para mostrar una multa específica
+void mostrarmulta(Multas *multa) {
+    printf("ID Prestamo: %d\n", multa->ID_prestamo);
+
+    if (strcmp(multa->razon, "Paso de tiempo") == 0) {
+        printf("Fecha devolver: %s", ctime(&multa->fecha_devolver));
+        printf("Dias de atraso: %d\n", multa->diasatraso);
+        printf("Monto: %d\n", multa->monto);
+        printf("Razon: %s\n", multa->razon);
+        printf("Metodo de pago: %s\n", multa->metododepago);
+    } else if (strcmp(multa->razon, "Mal estado") == 0) {
+        printf("Monto: %d\n", multa->monto);
+        printf("Razon: %s\n", multa->razon);
+    }
+
+    printf("--------------------------\n");
+}
+
+// Función para mostrar todas las multas en la cola doble
+void multanumero(Cola_multas *cola_multas) {
+    int contador = 1;
+    Multas *actual = cola_multas->frente;
+
+    while (actual != NULL) {
+        printf("[%d] ", contador);
+        mostrarmulta(actual);
+        actual = actual->siguiente;
+        contador++;
+    }
+}
+
+
+void registrarmulta(Cola_multas *cola_multas, Lista_prestamos *listaPrestamos) {
+    Multas *nuevaMulta = (Multas *)malloc(sizeof(Multas));
+    int ID_prestamo;
+    int opcion;
+
+    // Código para llenar los datos de la multa
+    printf("Ingrese ID del prestamo: \n");
+    scanf("%d", &ID_prestamo);
+
+    // Verificar si el préstamo existe
+    Prestamo *prestamoEncontrado = buscarPrestamoPorID(listaPrestamos, ID_prestamo);
+    if (prestamoEncontrado == NULL) {
+        printf("No se encontro ningun prestamo con el ID %d.\n", ID_prestamo);
+        free(nuevaMulta); // Liberar la memoria asignada antes de salir
+        return;
+    }
+
+    nuevaMulta->ID_prestamo = ID_prestamo;
+    printf("Seleccione el estado del libro:\n");
+    printf("[1] Paso de tiempo\n");
+    printf("[2] Mal estado\n");
+    scanf("%d", &opcion);
+
+    // Consumir el carácter de nueva línea en el búfer
+    getchar();
+
+    if (opcion == 1) {
+        nuevaMulta->precioxdia = 20;  // Establecer precio por día como 20 pesos mexicanos
+
+        // La fecha de devolución es establecida para 90 días (3 meses) en el pasado
+        time_t ahora = time(NULL);
+        struct tm *fechaDevolver = localtime(&ahora);
+        fechaDevolver->tm_mday -= 90;  // Resta 90 días
+        nuevaMulta->fecha_devolver = mktime(fechaDevolver);
+
+        int diasAtraso = 0;
+        if (ahora > nuevaMulta->fecha_devolver) {
+            diasAtraso = (int)(ahora - nuevaMulta->fecha_devolver) / (24 * 60 * 60);
+        }
+
+        nuevaMulta->diasatraso = diasAtraso;
+        nuevaMulta->monto = nuevaMulta->diasatraso * nuevaMulta->precioxdia;
+
+        strcpy(nuevaMulta->razon, "Paso de tiempo"); 
+
+        // Llamada a la función para imprimir la información
+        printf("Fecha devolver: %s", ctime(&nuevaMulta->fecha_devolver));
+        printf("Dias de atraso: %d\n", nuevaMulta->diasatraso);
+        printf("Monto: %d\n", nuevaMulta->monto);
+        printf("Ingrese el metodo de pago: ");
+        scanf("%s", nuevaMulta->metododepago);
+    } else if (opcion == 2) {
+
+        strcpy(nuevaMulta->razon, "Mal estado"); 
+        // Puedes definir el monto para el mal estado aquí, por ejemplo, 150 pesos
+        nuevaMulta->monto = 150;
+
+        printf("Monto: %d\n", nuevaMulta->monto);
+        printf("Ingrese el metodo de pago: ");
+        scanf("%s", nuevaMulta->metododepago);
+    } else {
+        printf("Opción no válida.\n");
+        free(nuevaMulta); // Liberar la memoria asignada antes de salir
+        return;
+    }
+
+    encolarfinal(cola_multas, nuevaMulta);
+}
+
+
+
+
+// Liberar la memoria de todas las multas en la cola doble
+void liberarmemoriamulta(Cola_multas *cola_multas) {
+    while (!coladoble(cola_multas)) {
+        Multas *multa = desencolarfrente(cola_multas);
+        free(multa);
+    }
+}
 
 //Función para mostrar el menú de gestión de multas
 int menumultas() {
@@ -1426,38 +1631,80 @@ int menumultas() {
     puts("[2] Mostrar todas las multas.");
     puts("[3] Pagar multa.");
 	puts("[0] Volver al menu principal.\n");
-    printf("Ingrese una opción: ");
+    printf("Ingrese una opcion: ");
     scanf("%d", &op);
     return op;
 }
 
-//FFunción para manejar la gestión de multas.
-int multas(){
+// Función para manejar la gestión de multas
+int multas(Cola_multas *cola_multas, Lista_prestamos **listaPrestamos) {
+    iniciarcoladoble(cola_multas);
+
     int op = 0;
     do {
-        op = menumultas(); //Llamar a la función de menú y obtener la elección del usuario.
+        op = menumultas(); // Llamar a la función de menú y obtener la elección del usuario.
         switch (op) {
             case 0:
-                puts("Volviendo al menu principal."); //regresando al menú principal.
-                system("pause"); //pausa para permitir al usuario leer el mensaje.          
+                puts("Volviendo al menu principal."); // Regresando al menú principal.
+                system("pause"); // Pausa para permitir al usuario leer el mensaje.
                 break;
             case 1:
-            	//Nueva multa.
+                registrarmulta(cola_multas, *listaPrestamos);
+                system("pause");
                 break;
             case 2:
-            	//Mostrar todas las multas.
-            	break;
+                // Mostrar todas las multas numeradas
+                multanumero(cola_multas);
+                system("pause");
+                break;
             case 3:
-            	//Pagar multa.
-            	break;
+                // Pagar multa
+                {
+                    if (!coladoble(cola_multas)) {
+                        // Mostrar todas las multas numeradas
+                        multanumero(cola_multas);
+
+                        // Solicitar al usuario seleccionar una multa para pagar
+                        int seleccion;
+                        printf("Seleccione la multa que desea pagar (ingrese el numero): \n");
+                        scanf("%d", &seleccion);
+
+                        // Desencolar la multa seleccionada
+                        Multas *multaPagar = NULL;
+                        if (seleccion >= 1) {
+                            multaPagar = desencolarfrente(cola_multas);
+                            for (int i = 1; i < seleccion && multaPagar != NULL; i++) {
+                                encolarfinal(cola_multas, multaPagar);
+                                multaPagar = desencolarfrente(cola_multas);
+                            }
+                        }
+
+                        // Procesar el pago de la multa
+                        if (multaPagar != NULL) {
+                            printf("Multa pagada con exito.\n");
+                            free(multaPagar); // Liberar memoria de la multa pagada
+                        } else {
+                            printf("Seleccion invalida o no hay multas pendientes.\n");
+                        }
+                    } else {
+                        printf("No hay multas pendientes.\n");
+                    }
+                }
+                system("pause");
+                break;
             default:
-                puts("ERROR. Opcion desconocida."); //opción desconocida.
-                system("pause"); //pausa para permitir al usuario leer el mensaje de error.
+                puts("ERROR. Opcion desconocida."); // Opción desconocida.
+                system("pause"); // Pausa para permitir al usuario leer el mensaje de error.
                 break;
         }
     } while (op != 0);
+
+    // Liberar memoria de todas las multas al salir del programa
+    liberarmemoriamulta(cola_multas);
+
     return 0;
 }
+
 
 void liberarMemoriaListaUsuarios(Lista_usuarios *lista) {
     while (lista != NULL) {
@@ -1496,9 +1743,10 @@ int main() {
     NodoAVL *raizLibros = NULL;
     Lista_prestamos *listaPrestamos = NULL;
     Lista_devoluciones *listaDevoluciones = NULL; // Agrega esta línea
+    Cola_multas *cola_multas = NULL;
 
     inicializarDatosEstaticos(&listaUsuarios, &raizLibros);
-    libreria(&listaUsuarios, &raizLibros, &listaPrestamos, &listaDevoluciones); // Modifica esta llamada para incluir listaDevoluciones
+    libreria(&listaUsuarios, &raizLibros, &listaPrestamos, &listaDevoluciones , &cola_multas); // Modifica esta llamada para incluir listaDevoluciones
     liberarMemoriaListaUsuarios(listaUsuarios);
     liberarMemoriaArbol(raizLibros);
     liberarMemoriaListaPrestamos(listaPrestamos);
