@@ -46,7 +46,7 @@ typedef struct NodoAVL {
 typedef struct prestamo {
     int ID_prestamo; 
     int ID_usuario;   
-    char ID_libro[5]; 
+    char ID_libro[5];                                       
     time_t fecha_pedido;  // Uso de time_t
     time_t fecha_devolver;  // Uso de time_t
 } Prestamo;
@@ -146,6 +146,8 @@ int devolucion();
 int reserva();
 int menumultas();
 int multas();
+void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *colaMultas); //Funcion para mostrar las notificaciones
+int difDias(time_t fecha1, time_t fecha2); //Funcion para calcular la diferencia de dias 
 
 //Funciones del arbol declaradas
 NodoAVL* agregarLibroAVL(NodoAVL* raiz, Libros libro);
@@ -1057,7 +1059,7 @@ int libreria(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prestam
                  multas(&cola_multas, listaPrestamos);
                 break;
             case 6:
-                notificaciones;
+                notificaciones(*listaPrestamos, *cola_multas);
                 break;
             default:
                 puts("ERROR. Opcion desconocida.");
@@ -1863,6 +1865,57 @@ int multas(Cola_multas *cola_multas, Lista_prestamos **listaPrestamos){
 }
 
 //LIMPIEZA 
+
+void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *colaMultas) {
+    time_t now;
+    time(&now);
+
+    // Notificaciones de préstamos
+    printf("Notificaciones de Préstamos:\n");
+    int hayNotificacionesPrestamos = 0;
+    while (listaPrestamos != NULL) {
+        // Calcular días restantes
+        int dias_restantes = (int)difftime(listaPrestamos->datos_prestamo.fecha_devolver, now) / (60 * 60 * 24);
+
+        // Mostrar notificación si hay menos de 7 días restantes
+        if (dias_restantes <= 16) {
+            hayNotificacionesPrestamos = 1;
+            printf("ID Préstamo: %d - Días restantes: %d\n", listaPrestamos->datos_prestamo.ID_prestamo, dias_restantes);
+        }
+
+        listaPrestamos = listaPrestamos->sig;
+    }
+
+    if (!hayNotificacionesPrestamos) {
+        printf("No hay notificaciones de préstamos.\n");
+    }
+
+    // Notificaciones de multas
+    printf("\nNotificaciones de Multas:\n");
+    int hayNotificacionesMultas = 0;
+    while (colaMultas->frente != NULL) {
+        // Calcular días transcurridos
+        int dias_transcurridos = (int)difftime(now, colaMultas->frente->fecha_devolver) / (60 * 60 * 24);
+
+        // Mostrar notificación si han pasado menos de 7 días
+        if (dias_transcurridos <= 7) {
+            hayNotificacionesMultas = 1;
+            printf("ID Multa: %d - Días transcurridos: %d\n", colaMultas->frente->ID_prestamo, dias_transcurridos);
+        }
+
+        colaMultas->frente = colaMultas->frente->siguiente;
+    }
+
+    if (!hayNotificacionesMultas) {
+        printf("No hay notificaciones de multas.\n");
+    }
+}
+
+
+
+int difDias(time_t fecha1, time_t fecha2) {
+    return (int)difftime(fecha2, fecha1) / (60 * 60 * 24);
+}
 
 void liberarMemoriaListaUsuarios(Lista_usuarios *lista) {
     while (lista != NULL) {
