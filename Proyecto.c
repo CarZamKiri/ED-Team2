@@ -1866,50 +1866,38 @@ int multas(Cola_multas *cola_multas, Lista_prestamos **listaPrestamos){
 
 //LIMPIEZA 
 
-void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *colaMultas) {
+void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *cola_multas) {
     time_t now;
     time(&now);
 
-    // Notificaciones de préstamos
-    printf("Notificaciones de Préstamos:\n");
-    int hayNotificacionesPrestamos = 0;
+    printf("\nNotificaciones de Préstamos:\n");
     while (listaPrestamos != NULL) {
-        // Calcular días restantes
-        int dias_restantes = (int)difftime(listaPrestamos->datos_prestamo.fecha_devolver, now) / (60 * 60 * 24);
-
-        // Mostrar notificación si hay menos de 7 días restantes
-        if (dias_restantes <= 16) {
-            hayNotificacionesPrestamos = 1;
-            printf("ID Préstamo: %d - Días restantes: %d\n", listaPrestamos->datos_prestamo.ID_prestamo, dias_restantes);
+        int diasRestantes = difDias(now, listaPrestamos->datos_prestamo.fecha_devolver);
+        if (diasRestantes >= 0) {
+            printf("ID Préstamo: %d - Días restantes para devolución: %d\n",
+                   listaPrestamos->datos_prestamo.ID_prestamo, diasRestantes);
         }
-
         listaPrestamos = listaPrestamos->sig;
     }
 
-    if (!hayNotificacionesPrestamos) {
-        printf("No hay notificaciones de préstamos.\n");
-    }
-
-    // Notificaciones de multas
     printf("\nNotificaciones de Multas:\n");
-    int hayNotificacionesMultas = 0;
-    while (colaMultas->frente != NULL) {
-        // Calcular días transcurridos
-        int dias_transcurridos = (int)difftime(now, colaMultas->frente->fecha_devolver) / (60 * 60 * 24);
-
-        // Mostrar notificación si han pasado menos de 7 días
-        if (dias_transcurridos <= 7) {
-            hayNotificacionesMultas = 1;
-            printf("ID Multa: %d - Días transcurridos: %d\n", colaMultas->frente->ID_prestamo, dias_transcurridos);
+    
+    if (cola_multas == NULL || cola_multas->frente == NULL) {
+        printf("No hay notificaciones de multas en este momento.\n");
+    } else {
+        Multas *tempMultas = cola_multas->frente;
+        while (tempMultas != NULL) {
+            int diasAtraso = difDias(tempMultas->fecha_devolver, now);
+            if (diasAtraso > 0) {
+                printf("ID Préstamo: %d - Días de atraso: %d - Monto de multa: %d\n",
+                       tempMultas->ID_prestamo, diasAtraso, tempMultas->monto);
+            }
+            tempMultas = tempMultas->siguiente;
         }
-
-        colaMultas->frente = colaMultas->frente->siguiente;
     }
-
-    if (!hayNotificacionesMultas) {
-        printf("No hay notificaciones de multas.\n");
-    }
+    system("pause");
 }
+
 
 
 
