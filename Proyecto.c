@@ -924,6 +924,7 @@ void mostrarmulta(Multas *multa) {
     } else if (strcmp(multa->razon, "Mal estado") == 0) {
         printf("Monto: %d\n", multa->monto);
         printf("Razon: %s\n", multa->razon);
+        printf("Metodo de pago: %s\n", multa->metododepago);
     }
 
     printf("--------------------------\n");
@@ -947,6 +948,14 @@ void registrarmulta(Cola_multas *cola_multas, Lista_prestamos *listaPrestamos) {
     Multas *nuevaMulta = (Multas *)malloc(sizeof(Multas));
     int ID_prestamo;
     int opcion;
+
+    static int cola_inicializada = 0;
+
+    // Verificar si la cola ya ha sido inicializada
+    if (!cola_inicializada) {
+        iniciarcoladoble(cola_multas);
+        cola_inicializada = 1;  // Marcar la cola como inicializada
+    }
 
     // Código para llenar los datos de la multa
     printf("Ingrese ID del prestamo: \n");
@@ -1803,7 +1812,6 @@ int menumultas() {
 
 //FFunción para manejar la gestión de multas.
 int multas(Cola_multas *cola_multas, Lista_prestamos **listaPrestamos){
-    iniciarcoladoble(cola_multas);
     int op = 0;
     do {
         op = menumultas();
