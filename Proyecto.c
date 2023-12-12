@@ -146,9 +146,8 @@ int devolucion();
 int reserva();
 int menumultas();
 int multas();
-void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *colaMultas); //Funcion para mostrar las notificaciones
+void notificaciones(Lista_prestamos *listaPrestamos); //Funcion para mostrar las notificaciones
 int difDias(time_t fecha1, time_t fecha2); //Funcion para calcular la diferencia de dias 
-void imprimirNotificacionMultas(Cola_multas *cola_multas);
 
 //Funciones del arbol declaradas
 NodoAVL* agregarLibroAVL(NodoAVL* raiz, Libros libro);
@@ -1062,7 +1061,7 @@ int libreria(Lista_usuarios **listaUsuarios, NodoAVL **raizLibros, Lista_prestam
                  multas(&cola_multas, listaPrestamos);
                 break;
             case 6:
-                notificaciones(*listaPrestamos, *cola_multas);
+                notificaciones(*listaPrestamos);
                 break;
             default:
                 puts("ERROR. Opcion desconocida.");
@@ -1869,8 +1868,7 @@ int multas(Cola_multas *cola_multas, Lista_prestamos **listaPrestamos){
 
 //LIMPIEZA 
 
-void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *cola_multas) {
-    iniciarcoladoble(cola_multas);
+void notificaciones(Lista_prestamos *listaPrestamos) {
     time_t now;
     time(&now);
 
@@ -1884,7 +1882,7 @@ void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *cola_multas) {
         
         listaPrestamos = listaPrestamos->sig;
     }
-
+    system("pause");
 }
 
 int difDias(time_t fecha1, time_t fecha2) {
