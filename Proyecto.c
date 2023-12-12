@@ -148,6 +148,7 @@ int menumultas();
 int multas();
 void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *colaMultas); //Funcion para mostrar las notificaciones
 int difDias(time_t fecha1, time_t fecha2); //Funcion para calcular la diferencia de dias 
+void imprimirNotificacionMultas(Cola_multas *cola_multas);
 
 //Funciones del arbol declaradas
 NodoAVL* agregarLibroAVL(NodoAVL* raiz, Libros libro);
@@ -279,15 +280,19 @@ int obtenerFactorBalance(NodoAVL *N) {
 
 //Agregar libros
 NodoAVL* agregarLibroAVL(NodoAVL* raiz, Libros libro) {
-    if (raiz == NULL) {
+    if (raiz == NULL) 
+    {
         return nuevoNodoLibro(libro);
     }
 
-    if (strcmp(libro.ID_libro, raiz->datos_libro.ID_libro) < 0) {
+    if (strcmp(libro.ID_libro, raiz->datos_libro.ID_libro) < 0) 
+    {
         raiz->izquierda = agregarLibroAVL(raiz->izquierda, libro);
-    } else if (strcmp(libro.ID_libro, raiz->datos_libro.ID_libro) > 0) {
+    } else if (strcmp(libro.ID_libro, raiz->datos_libro.ID_libro) > 0) 
+    {
         raiz->derecha = agregarLibroAVL(raiz->derecha, libro);
-    } else {
+    } else 
+    {
         printf("Ya existe un libro con el mismo ID.\n");
         return raiz;
     }
@@ -311,9 +316,7 @@ NodoAVL* agregarLibroAVL(NodoAVL* raiz, Libros libro) {
         raiz->derecha = rotarDerecha(raiz->derecha);
         return rotarIzquierda(raiz);
     }
-
     return raiz;
-
 }
 
 
@@ -1867,6 +1870,7 @@ int multas(Cola_multas *cola_multas, Lista_prestamos **listaPrestamos){
 //LIMPIEZA 
 
 void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *cola_multas) {
+    iniciarcoladoble(cola_multas);
     time_t now;
     time(&now);
 
@@ -1877,29 +1881,11 @@ void notificaciones(Lista_prestamos *listaPrestamos, Cola_multas *cola_multas) {
             printf("ID Préstamo: %d - Días restantes para devolución: %d\n",
                    listaPrestamos->datos_prestamo.ID_prestamo, diasRestantes);
         }
+        
         listaPrestamos = listaPrestamos->sig;
     }
 
-    printf("\nNotificaciones de Multas:\n");
-    
-    if (cola_multas == NULL || cola_multas->frente == NULL) {
-        printf("No hay notificaciones de multas en este momento.\n");
-    } else {
-        Multas *tempMultas = cola_multas->frente;
-        while (tempMultas != NULL) {
-            int diasAtraso = difDias(tempMultas->fecha_devolver, now);
-            if (diasAtraso > 0) {
-                printf("ID Préstamo: %d - Días de atraso: %d - Monto de multa: %d\n",
-                       tempMultas->ID_prestamo, diasAtraso, tempMultas->monto);
-            }
-            tempMultas = tempMultas->siguiente;
-        }
-    }
-    system("pause");
 }
-
-
-
 
 int difDias(time_t fecha1, time_t fecha2) {
     return (int)difftime(fecha2, fecha1) / (60 * 60 * 24);
@@ -1959,7 +1945,9 @@ int main() {
     NodoAVL *raizLibros = NULL;
     Lista_prestamos *listaPrestamos = NULL;
     Lista_devoluciones *listaDevoluciones = NULL;
-    Cola_multas *cola_multas = NULL;
+    Cola_multas *cola_multas = (Cola_multas *)malloc(sizeof(Cola_multas));
+    cola_multas->frente = NULL;
+    cola_multas->final = NULL;
     ColaReservas *colaReservas = (ColaReservas *)malloc(sizeof(ColaReservas));
 
     if (colaReservas == NULL) {
