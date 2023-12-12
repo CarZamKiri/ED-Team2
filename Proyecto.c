@@ -125,7 +125,6 @@ void visualizarUsuarios(Lista_usuarios *listaUsuarios);
 void visualizarUsuario(Usuario usuario);
 void editarUsuario(Lista_usuarios **listaUsuarios);
 void imprimirDatosUsuario(Usuario *usuario);
-void imprimirDatosUsuario(Usuario *usuario);
 void iniciarcoladoble(Cola_multas *cola_multas);
 int coladoble(Cola_multas *cola_multas);
 void encolarfrente(Cola_multas *cola_multas, Multas **nuevaMulta);
@@ -1272,6 +1271,7 @@ void editarUsuario(Lista_usuarios **listaUsuarios) {
 
                 printf("Ingrese la nueva edad: ");
                 scanf("%d", &actual->datos_usuario.edad);
+                while (getchar() != '\n');
 
                 printf("Ingrese el nuevo telefono: ");
                 fgets(actual->datos_usuario.telefono, sizeof(actual->datos_usuario.telefono), stdin);
