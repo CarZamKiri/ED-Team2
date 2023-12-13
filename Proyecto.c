@@ -533,9 +533,15 @@ int crearPrestamo(Lista_usuarios *listaUsuarios, NodoAVL *raizLibros, Lista_pres
 
     // Establecer las fechas de pedido y devolución
     time(&nuevoPrestamo.fecha_pedido);
-    struct tm tiempoEstructurado = *localtime(&nuevoPrestamo.fecha_pedido);
-    tiempoEstructurado.tm_mday += 14; // Añadir 14 días para la fecha de devolución
-    nuevoPrestamo.fecha_devolver = mktime(&tiempoEstructurado);
+    struct tm tiempoEstructuradoPedido = *localtime(&nuevoPrestamo.fecha_pedido);
+    tiempoEstructuradoPedido.tm_mday -= 100; // Restar 100 días para la fecha de pedido
+    nuevoPrestamo.fecha_pedido = mktime(&tiempoEstructuradoPedido);
+
+    time_t fechaDevolucionEpoch = nuevoPrestamo.fecha_pedido;
+    struct tm *tiempoEstructuradoDevolucion = localtime(&fechaDevolucionEpoch);
+    tiempoEstructuradoDevolucion->tm_mday += 10; // Sumar 90 días para la fecha de devolución
+    nuevoPrestamo.fecha_devolver = mktime(tiempoEstructuradoDevolucion);
+
 
     // Disminuir la cantidad de libros disponibles
     libroEncontrado->datos_libro.cantidad--;
@@ -543,7 +549,7 @@ int crearPrestamo(Lista_usuarios *listaUsuarios, NodoAVL *raizLibros, Lista_pres
     // Agregar el préstamo a la lista
     agregarPrestamo(listaPrestamos, nuevoPrestamo);
 
-    printf("Préstamo con ID %d creado con exito. Fecha de devolución: ", ID_prestamo);
+    printf("Préstamo con ID %d creado con éxito. Fecha de devolución: ", ID_prestamo);
     imprimirFecha(nuevoPrestamo.fecha_devolver);
     printf("\n");
 
