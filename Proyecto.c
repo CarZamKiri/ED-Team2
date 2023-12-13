@@ -851,181 +851,249 @@ void eliminarReserva(ColaReservas **colaReservas) {
 
 // Función para inicializar la cola doble
 void iniciarcoladoble(Cola_multas *cola_multas) {
+    // Asigna el valor de NULL a los punteros frente y final de la cola doble.
     cola_multas->frente = cola_multas->final = NULL;
 }
 
 // Función para verificar si la cola doble de multas está vacía
 int coladoble(Cola_multas *cola_multas) {
+    // Retorna 1 si tanto el puntero frente como el puntero final de la cola doble son NULL,
+    // indicando que la cola está vacía. Retorna 0 en caso contrario.
     return (cola_multas->frente == NULL && cola_multas->final == NULL) ? 1 : 0;
 }
+
 // Encolar al frente de la cola doble
 void encolarfrente(Cola_multas *cola_multas, Multas **nuevaMulta) {
+    // Establece el puntero anterior de la nueva multa como NULL.
     (*nuevaMulta)->anterior = NULL;
+    
+    // Establece el puntero siguiente de la nueva multa como el frente actual de la cola doble.
     (*nuevaMulta)->siguiente = cola_multas->frente;
 
+    // Verifica si la cola doble está vacía.
     if (coladoble(cola_multas)) {
+        // Si está vacía, establece tanto el frente como el final como la nueva multa.
         cola_multas->frente = cola_multas->final = *nuevaMulta;
     } else {
+        // Si no está vacía, ajusta los punteros para incluir la nueva multa en el frente.
         cola_multas->frente->anterior = *nuevaMulta;
         cola_multas->frente = *nuevaMulta;
     }
 }
 
-// Encolar al final de la cola doble
+/// Encolar al final de la cola doble
 void encolarfinal(Cola_multas *cola_multas, Multas *nuevaMulta) {
+    // Establece el puntero anterior de la nueva multa como el final actual de la cola doble.
     nuevaMulta->anterior = cola_multas->final;
+    
+    // Establece el puntero siguiente de la nueva multa como NULL.
     nuevaMulta->siguiente = NULL;
 
+    // Verifica si la cola doble está vacía.
     if (coladoble(cola_multas)) {
+        // Si está vacía, establece tanto el frente como el final como la nueva multa.
         cola_multas->frente = cola_multas->final = nuevaMulta;
     } else {
+        // Si no está vacía, ajusta los punteros para incluir la nueva multa al final.
         cola_multas->final->siguiente = nuevaMulta;
         cola_multas->final = nuevaMulta;
     }
 }
 
-
 // Desencolar del frente de la cola doble
 Multas *desencolarfrente(Cola_multas *cola_multas) {
+    // Verifica si la cola doble está vacía.
     if (coladoble(cola_multas)) {
+        // Si está vacía, retorna NULL ya que no se puede desencolar.
         return NULL;
     } else {
+        // Si no está vacía, guarda la primera multa de la cola.
         Multas *primeraMulta = cola_multas->frente;
+
+        // Actualiza el frente de la cola para apuntar a la siguiente multa.
         cola_multas->frente = cola_multas->frente->siguiente;
+
+        // Verifica si después de desencolar, la cola está vacía.
         if (cola_multas->frente == NULL) {
+            // Si está vacía, establece el final como NULL.
             cola_multas->final = NULL;
         } else {
+            // Si no está vacía, actualiza el puntero anterior del nuevo frente a NULL.
             cola_multas->frente->anterior = NULL;
         }
+
+        // Retorna la primera multa que fue desencolada.
         return primeraMulta;
     }
 }
 
 // Desencolar del final de la cola doble
 Multas *desencolarfinal(Cola_multas *cola_multas) {
+    // Verifica si la cola doble está vacía.
     if (coladoble(cola_multas)) {
+        // Si está vacía, retorna NULL ya que no se puede desencolar.
         return NULL;
     } else {
+        // Si no está vacía, guarda la última multa de la cola.
         Multas *ultimaMulta = cola_multas->final;
+
+        // Actualiza el final de la cola para apuntar a la anterior multa.
         cola_multas->final = cola_multas->final->anterior;
+
+        // Verifica si después de desencolar, la cola está vacía.
         if (cola_multas->final == NULL) {
+            // Si está vacía, establece el frente como NULL.
             cola_multas->frente = NULL;
         } else {
+            // Si no está vacía, actualiza el puntero siguiente del nuevo final a NULL.
             cola_multas->final->siguiente = NULL;
         }
+
+        // Retorna la última multa que fue desencolada.
         return ultimaMulta;
     }
 }
 
+
 // Función para mostrar una multa específica
 void mostrarmulta(Multas *multa) {
+    // Imprime el ID del préstamo asociado a la multa.
     printf("ID Prestamo: %d\n", multa->ID_prestamo);
 
+    // Comprueba la razón de la multa y muestra información relevante según la razón.
     if (strcmp(multa->razon, "Paso de tiempo") == 0) {
+        // Si la razón es "Paso de tiempo", muestra la fecha de devolución, días de atraso, monto,
+        // razón y método de pago asociados a la multa.
         printf("Fecha devolver: %s", ctime(&multa->fecha_devolver));
         printf("Dias de atraso: %d\n", multa->diasatraso);
         printf("Monto: %d\n", multa->monto);
         printf("Razon: %s\n", multa->razon);
         printf("Metodo de pago: %s\n", multa->metododepago);
     } else if (strcmp(multa->razon, "Mal estado") == 0) {
+        // Si la razón es "Mal estado", muestra el monto, razón y método de pago asociados a la multa.
         printf("Monto: %d\n", multa->monto);
         printf("Razon: %s\n", multa->razon);
         printf("Metodo de pago: %s\n", multa->metododepago);
     }
 
+    // Imprime una línea divisoria al final de la información de la multa.
     printf("--------------------------\n");
 }
 
+
 // Función para mostrar todas las multas en la cola doble
 void multanumero(Cola_multas *cola_multas) {
+    // Inicializa un contador para numerar las multas.
     int contador = 1;
+
+    // Inicializa un puntero 'actual' apuntando al frente de la cola doble.
     Multas *actual = cola_multas->frente;
 
+    // Itera a través de la cola doble mientras el puntero 'actual' no sea NULL.
     while (actual != NULL) {
+        // Imprime el número de la multa y llama a la función mostrarmulta para mostrar sus detalles.
         printf("[%d] ", contador);
         mostrarmulta(actual);
+
+        // Mueve el puntero 'actual' al siguiente nodo en la cola.
         actual = actual->siguiente;
+
+        // Incrementa el contador para la próxima multa.
         contador++;
     }
 }
 
 
+
 void registrarmulta(Cola_multas *cola_multas, Lista_prestamos *listaPrestamos) {
+    // Asigna memoria para una nueva multa.
     Multas *nuevaMulta = (Multas *)malloc(sizeof(Multas));
+
+    // Declaración de variables locales.
     int ID_prestamo;
     int opcion;
 
+    // Variable estática para rastrear si la cola ya ha sido inicializada.
     static int cola_inicializada = 0;
 
-    // Verificar si la cola ya ha sido inicializada
+    // Verificar si la cola ya ha sido inicializada.
     if (!cola_inicializada) {
         iniciarcoladoble(cola_multas);
-        cola_inicializada = 1;  // Marcar la cola como inicializada
+        cola_inicializada = 1;  // Marcar la cola como inicializada.
     }
 
-    // Código para llenar los datos de la multa
-    printf("Ingrese ID del prestamo: \n");
+    // Código para llenar los datos de la multa.
+    printf("Ingrese ID del préstamo: \n");
     scanf("%d", &ID_prestamo);
 
-    // Verificar si el préstamo existe
+    // Verificar si el préstamo existe.
     Prestamo *prestamoEncontrado = buscarPrestamoPorID(listaPrestamos, ID_prestamo);
     if (prestamoEncontrado == NULL) {
-        printf("No se encontro ningun prestamo con el ID %d.\n", ID_prestamo);
-        free(nuevaMulta); // Liberar la memoria asignada antes de salir
+        printf("No se encontró ningún préstamo con el ID %d.\n", ID_prestamo);
+        free(nuevaMulta); // Liberar la memoria asignada antes de salir.
         return;
     }
 
+    // Asignar el ID del préstamo a la nueva multa.
     nuevaMulta->ID_prestamo = ID_prestamo;
+
+    // Solicitar al usuario que seleccione el estado del libro.
     printf("Seleccione el estado del libro:\n");
     printf("[1] Paso de tiempo\n");
     printf("[2] Mal estado\n");
     scanf("%d", &opcion);
 
-    // Consumir el carácter de nueva línea en el búfer
+    // Consumir el carácter de nueva línea en el búfer.
     getchar();
 
+    // Rellenar la información de la multa según la opción seleccionada.
     if (opcion == 1) {
-        nuevaMulta->precioxdia = 20;  // Establecer precio por día como 20 pesos mexicanos
+        // Configurar detalles para el "Paso de tiempo".
+        nuevaMulta->precioxdia = 20;  // Establecer precio por día como 20 pesos mexicanos.
 
-        // La fecha de devolución es establecida para 90 días (3 meses) en el pasado
+        // Configurar la fecha de devolución 90 días (3 meses) en el pasado.
         time_t ahora = time(NULL);
         struct tm *fechaDevolver = localtime(&ahora);
-        fechaDevolver->tm_mday -= 90;  // Resta 90 días
+        fechaDevolver->tm_mday -= 90;  // Restar 90 días.
         nuevaMulta->fecha_devolver = mktime(fechaDevolver);
 
+        // Calcular días de atraso.
         int diasAtraso = 0;
         if (ahora > nuevaMulta->fecha_devolver) {
             diasAtraso = (int)(ahora - nuevaMulta->fecha_devolver) / (24 * 60 * 60);
         }
 
+        // Configurar los detalles adicionales de la multa.
         nuevaMulta->diasatraso = diasAtraso;
         nuevaMulta->monto = nuevaMulta->diasatraso * nuevaMulta->precioxdia;
+        strcpy(nuevaMulta->razon, "Paso de tiempo");
 
-        strcpy(nuevaMulta->razon, "Paso de tiempo"); 
-
-        // Llamada a la función para imprimir la información
+        // Imprimir la información.
         printf("Fecha devolver: %s", ctime(&nuevaMulta->fecha_devolver));
         printf("Dias de atraso: %d\n", nuevaMulta->diasatraso);
         printf("Monto: %d\n", nuevaMulta->monto);
-        printf("Ingrese el metodo de pago: ");
+        printf("Ingrese el método de pago: ");
         scanf("%s", nuevaMulta->metododepago);
     } else if (opcion == 2) {
-
-        strcpy(nuevaMulta->razon, "Mal estado"); 
-        // Puedes definir el monto para el mal estado aquí, por ejemplo, 150 pesos
-        nuevaMulta->monto = 150;
-
+        // Configurar detalles para "Mal estado".
+        strcpy(nuevaMulta->razon, "Mal estado");
+        nuevaMulta->monto = 150;  // Puedes definir el monto para el mal estado aquí, por ejemplo, 150 pesos.
+        
+        // Imprimir la información.
         printf("Monto: %d\n", nuevaMulta->monto);
-        printf("Ingrese el metodo de pago: ");
+        printf("Ingrese el método de pago: ");
         scanf("%s", nuevaMulta->metododepago);
     } else {
+        // Opción no válida.
         printf("Opción no válida.\n");
-        free(nuevaMulta); // Liberar la memoria asignada antes de salir
+        free(nuevaMulta); // Liberar la memoria asignada antes de salir.
         return;
     }
 
+    // Encolar la nueva multa al final de la cola doble.
     encolarfinal(cola_multas, nuevaMulta);
 }
+
 
 
 //Declaramos el menu principal.
@@ -1800,54 +1868,73 @@ int reserva(ColaReservas **colaReservas){
     return 0;
 }
 
-//Función para mostrar el menú de gestión de multas
+// Función para mostrar el menú de gestión de multas
 int menumultas() {
+    // Declara una variable entera llamada 'op' e inicialízala con el valor 0.
     int op = 0;
+    
+    // Limpia la pantalla de la consola.
     system("cls");
-	puts("\t------------------------------------------");
-	puts("\t                 MULTA:                   ");
-	puts("\t------------------------------------------");
+    
+    // Imprime líneas decorativas del título del menú.
+    puts("\t------------------------------------------");
+    puts("\t                 MULTA:                   ");
+    puts("\t------------------------------------------");
+    
+    // Imprime opciones del menú.
     puts("[1] Registrar nueva multa.");
     puts("[2] Mostrar todas las multas.");
     puts("[3] Pagar multa.");
-	puts("[0] Volver al menu principal.\n");
-    printf("Ingrese una opcion: ");
+    puts("[0] Volver al menú principal.\n");
+    
+    // Pide al usuario que ingrese una opción.
+    printf("Ingrese una opción: ");
+    
+    // Lee la opción ingresada por el usuario y la almacena en la variable 'op'.
     scanf("%d", &op);
+    
+    // Devuelve el valor ingresado por el usuario.
     return op;
 }
 
-//FFunción para manejar la gestión de multas.
-int multas(Cola_multas *cola_multas, Lista_prestamos **listaPrestamos){
+
+// Función para manejar la gestión de multas.
+int multas(Cola_multas *cola_multas, Lista_prestamos **listaPrestamos) {
+    // Declaración e inicialización de la variable 'op' que almacena la opción del menú.
     int op = 0;
+
+    // Bucle do-while que se ejecuta mientras 'op' sea diferente de 0 (volver al menú principal).
     do {
+        // Llama a la función menumultas() para mostrar el menú y obtener la opción del usuario.
         op = menumultas();
+
+        // Estructura switch para manejar la opción seleccionada por el usuario.
         switch (op) {
             case 0:
-                puts("Volviendo al menu principal."); //regresando al menú principal.
-                system("pause"); //pausa para permitir al usuario leer el mensaje.          
+                puts("Volviendo al menú principal."); // Mensaje de salida para la opción 0.
+                system("pause"); // Pausa para permitir al usuario leer el mensaje.
                 break;
             case 1:
-                registrarmulta(cola_multas, *listaPrestamos);
-                system("pause");
+                registrarmulta(cola_multas, *listaPrestamos); // Llama a la función registrarmulta.
+                system("pause"); // Pausa para permitir al usuario leer el mensaje.
                 break;
             case 2:
-                // Mostrar todas las multas numeradas
-                multanumero(cola_multas);
-                system("pause");
+                multanumero(cola_multas); // Muestra todas las multas numeradas.
+                system("pause"); // Pausa para permitir al usuario leer el mensaje.
                 break;
             case 3:
                 // Pagar multa
                 {
+                    // Comprueba si hay multas pendientes.
                     if (!coladoble(cola_multas)) {
-                        // Mostrar todas las multas numeradas
-                        multanumero(cola_multas);
+                        multanumero(cola_multas); // Muestra todas las multas numeradas.
 
-                        // Solicitar al usuario seleccionar una multa para pagar
+                        // Solicita al usuario seleccionar una multa para pagar.
                         int seleccion;
-                        printf("Seleccione la multa que desea pagar (ingrese el numero): \n");
+                        printf("Seleccione la multa que desea pagar (ingrese el número): \n");
                         scanf("%d", &seleccion);
 
-                        // Desencolar la multa seleccionada
+                        // Desencola la multa seleccionada.
                         Multas *multaPagar = NULL;
                         if (seleccion >= 1) {
                             multaPagar = desencolarfrente(cola_multas);
@@ -1857,27 +1944,27 @@ int multas(Cola_multas *cola_multas, Lista_prestamos **listaPrestamos){
                             }
                         }
 
-                        // Procesar el pago de la multa
+                        // Procesa el pago de la multa.
                         if (multaPagar != NULL) {
-                            printf("Multa pagada con exito.\n");
-                            free(multaPagar); // Liberar memoria de la multa pagada
+                            printf("Multa pagada con éxito.\n");
+                            free(multaPagar); // Libera memoria de la multa pagada.
                         } else {
-                            printf("Seleccion invalida o no hay multas pendientes.\n");
+                            printf("Selección inválida o no hay multas pendientes.\n");
                         }
                     } else {
                         printf("No hay multas pendientes.\n");
                     }
                 }
-                system("pause");
+                system("pause"); // Pausa para permitir al usuario leer el mensaje.
                 break;
             default:
-                puts("ERROR. Opcion desconocida."); // Opción desconocida.
+                puts("ERROR. Opción desconocida."); // Mensaje de error para opciones no reconocidas.
                 system("pause"); // Pausa para permitir al usuario leer el mensaje de error.
                 break;
         }
-    } while (op != 0);
- 
-      return 0;
+    } while (op != 0); // Continúa el bucle hasta que el usuario elige volver al menú principal.
+
+    return 0;
 }
 
 //LIMPIEZA 
