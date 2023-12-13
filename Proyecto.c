@@ -1023,13 +1023,13 @@ void registrarmulta(Cola_multas *cola_multas, Lista_prestamos *listaPrestamos) {
     }
 
     // Código para llenar los datos de la multa.
-    printf("Ingrese ID del préstamo: \n");
+    printf("Ingrese ID del prestamo: \n");
     scanf("%d", &ID_prestamo);
 
     // Verificar si el préstamo existe.
     Prestamo *prestamoEncontrado = buscarPrestamoPorID(listaPrestamos, ID_prestamo);
     if (prestamoEncontrado == NULL) {
-        printf("No se encontró ningún préstamo con el ID %d.\n", ID_prestamo);
+        printf("No se encontrO ningUn prestamo con el ID %d.\n", ID_prestamo);
         free(nuevaMulta); // Liberar la memoria asignada antes de salir.
         return;
     }
@@ -1039,8 +1039,8 @@ void registrarmulta(Cola_multas *cola_multas, Lista_prestamos *listaPrestamos) {
 
     // Solicitar al usuario que seleccione el estado del libro.
     printf("Seleccione el estado del libro:\n");
-    printf("[1] Paso de tiempo\n");
-    printf("[2] Mal estado\n");
+    printf("[1] Paso de tiempo.\n");
+    printf("[2] Mal estado.\n");
     scanf("%d", &opcion);
 
     // Consumir el carácter de nueva línea en el búfer.
@@ -1072,7 +1072,7 @@ void registrarmulta(Cola_multas *cola_multas, Lista_prestamos *listaPrestamos) {
         printf("Fecha devolver: %s", ctime(&nuevaMulta->fecha_devolver));
         printf("Dias de atraso: %d\n", nuevaMulta->diasatraso);
         printf("Monto: %d\n", nuevaMulta->monto);
-        printf("Ingrese el método de pago: ");
+        printf("Ingrese el mEtodo de pago: ");
         scanf("%s", nuevaMulta->metododepago);
     } else if (opcion == 2) {
         // Configurar detalles para "Mal estado".
@@ -1081,7 +1081,7 @@ void registrarmulta(Cola_multas *cola_multas, Lista_prestamos *listaPrestamos) {
         
         // Imprimir la información.
         printf("Monto: %d\n", nuevaMulta->monto);
-        printf("Ingrese el método de pago: ");
+        printf("Ingrese el mEtodo de pago: ");
         scanf("%s", nuevaMulta->metododepago);
     } else {
         // Opción no válida.
@@ -1888,7 +1888,7 @@ int menumultas() {
     puts("[0] Volver al menú principal.\n");
     
     // Pide al usuario que ingrese una opción.
-    printf("Ingrese una opción: ");
+    printf("Ingrese una opcion: ");
     
     // Lee la opción ingresada por el usuario y la almacena en la variable 'op'.
     scanf("%d", &op);
